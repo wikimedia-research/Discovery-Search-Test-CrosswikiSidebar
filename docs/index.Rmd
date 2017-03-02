@@ -1,0 +1,406 @@
+---
+title: "Cross-wiki Search A/B Test"
+subtitle: "Discovering Content On Wikipedia's Sister Projects"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+author:
+- affiliation: "Senior Software Engineer, Wikimedia Foundation"
+  name: "Erik Bernhardson"
+- affiliation: "User Experience Engineer, Wikimedia Foundation"
+  name: "Jan Drewniak"
+- affiliation: "Product Manager (Search Backend), Wikimedia Foundation"
+  name: "Dan Garry"
+- affiliation: "Data Analyst, Wikimedia Foundation"
+  name: "Mikhail Popov"
+- affiliation: "Product Manager (Analysis, Search Frontend), Wikimedia Foundation"
+  name: "Deb Tankersley"
+abstract: "Donec ullamcorper nulla non metus auctor fringilla. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Maecenas sed diam eget risus varius blandit sit amet non magna. Sed posuere consectetur est at lobortis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."
+output:
+  html_document:
+    includes:
+      after_body: suffix.html
+    code_folding: hide
+    css: style.css
+    fig_caption: yes
+    fig_width: 10
+    fig_height: 6
+    highlight: zenburn
+    keep_md: yes
+    mathjax: https://tools-static.wmflabs.org/cdnjs/ajax/libs/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+    md_extensions: +raw_html +markdown_in_html_blocks +tex_math_dollars +fancy_lists +startnum +lists_without_preceding_blankline
+    self_contained: no
+    theme: flatly
+    toc: yes
+    toc_depth: 4
+    toc_float:
+      collapsed: no
+    df_print: paged
+  pdf_document:
+    citation_package: natbib
+    fig_height: 6
+    fig_width: 10
+    keep_tex: yes
+    latex_engine: xelatex
+    template: svm-latex-ms.tex
+bibliography: bibliography.bib
+link-citations: yes
+nocite: |
+  @R-base, @R-rmarkdown, @R-ggplot2, @R-magrittr, @R-dplyr, @R-tidyr, @R-BCDA, @R-binom, @R-wmf
+csl: journal-of-statistical-computation-and-simulation.csl
+fontsize: 11pt
+geometry: margin=1in
+---
+```{js, echo = FALSE}
+$(function() {
+  /* Lets the user click on the images to view them in full resolution. */
+  $("div.figure img").wrap(function() {
+    var link = $('<a/>');
+    link.attr('href', $(this).attr('src'));
+    link.attr('title', $(this).attr('alt'));
+    link.attr('target', '_blank');
+    return link;
+  });
+  $("p.abstract").text("Executive Summary");
+  $("div#wmf").wrap('<a href="https://wikimediafoundation.org/" />');
+});
+```
+```{r setup, include=FALSE}
+set.seed(0)
+library(magrittr)
+is_html <- function() {
+  if (length(knitr::opts_knit$get("rmarkdown.pandoc.to")) > 0) {
+    return(knitr::opts_knit$get("rmarkdown.pandoc.to") == "html")
+  } else {
+    return(FALSE)
+  }
+}
+knitr::opts_chunk$set(echo = is_html(), warning = FALSE, message = FALSE, dev = 'png')
+path <- function(x) {
+  if (grepl("docs", getwd(), fixed = TRUE)) {
+    return(file.path("..", x))
+  } else {
+    return(x)
+  }
+}
+fable <- function(x, caption) {
+  return(knitr::kable(x, format = ifelse(is_html(), "markdown", "latex"), caption = caption))
+}
+```
+```{r captions, include=FALSE}
+# Manual figure & table captioning:
+library(captioner) # install.packages("captioner")
+table_caps <- captioner(prefix = "Table")
+figure_caps <- captioner(prefix = "Figure")
+code_caps <- captioner(prefix = "Snippet")
+# Custom caption formatting and printing:
+format_caption <- function(caps, name) {
+  return({
+    sub(caps(name, display = "cite"),
+      paste0(ifelse(is_html(), "**", "\\textbf{"), caps(name, display = "cite"), ifelse(is_html(), "**", "}")),
+      caps(name, display = "full"), fixed = TRUE) %>%
+    sub("  ", " ", ., fixed = TRUE)
+  })
+}
+print_caption <- function(formatted_caption) {
+  cat(paste0('<p class = "caption">', formatted_caption, '</p>', collapse = ''))
+}
+# Add captions:
+figure_caps(name = "example", caption = "Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering.")
+figure_caps(name = "user_flow", caption = "Flow of Wikipedia visitors into the A/B test.", display = FALSE)
+table_caps(name = "sessions_enrolled", caption = "Number of search sessions used for analysis by wiki and group.")
+figure_caps(name = "zero_results_rate", caption = "Zero results rate of experimental groups across wikis by type of results.")
+figure_caps(name = "clickthrough_rates", caption = "Clickthrough rates of experimental groups, split by wiki. In the control group, only searches that yielded some same-wiki results were considered. In the two test groups, only searches that yielded some sister-wiki results were considered.")
+table_caps(name = "sister_clicks", caption = ifelse(is_html(), "Clicks on cross-wiki search results", "Sample of 16 events (2 from each wiki-group combination) that are clicks on cross-wiki search results."))
+```
+```{r links, echo=FALSE, results='asis'}
+if (is_html()) {
+  cat('<p>{ <a href="https://github.com/wikimedia-research/Discovery-Search-Test-CrosswikiSidebar/blob/master/docs/index.Rmd">RMarkdown Source</a> | <a href="https://github.com/wikimedia-research/Discovery-Search-Test-CrosswikiSidebar">Analysis Codebase</a> }</p>')
+} else {
+  cat('\\let\\thefootnote\\relax\\footnote{Source code and data are available on GitHub (\\href{https://github.com/wikimedia-research/Discovery-Search-Test-CrosswikiSidebar}{wikimedia-research/Discovery-Search-Test-CrosswikiSidebar})}')
+}
+```
+
+# Introduction
+
+Donec id elit non mi porta gravida at eget metus. Nullam quis risus eget urna mollis ornare vel eu leo. Sed posuere consectetur est at lobortis. Maecenas sed diam eget risus varius blandit sit amet non magna.
+
+```{r example_caption, include=FALSE}
+example_cap <- format_caption(figure_caps, "example")
+example_png <- png::readPNG(path("example.png"), info = TRUE)
+example_dim <- attr(example_png, "info")$dim
+```
+```{r example_figure, fig.width=0.5*example_dim[1]/72, fig.height=0.5*example_dim[2]/72, fig.cap=example_cap, fig.align='center', fig.ext='png', echo=FALSE}
+grid::grid.raster(example_png, interpolate = TRUE)
+```
+
+Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Aenean lacinia bibendum nulla sed consectetur.
+
+The two primary questions we wanted to answer are:
+
+- Did users who saw additional (cross-wiki) results click on those results (including "More Results")?
+
+- Did the order of the wikis matter? That is, were users actually clicking on relevant results or just showed up at the top?
+
+Each wiki was shown as a box in a sidebar (see `r figure_caps("example", display = "cite")`)...
+
+# Methods
+
+Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+
+```{r pkgs}
+import::from(dplyr, group_by, ungroup, keep_where = filter, mutate, arrange, select, transmute, left_join, summarize, bind_rows, case_when, if_else, rename)
+library(ggplot2)
+```
+
+## Data
+
+```{r user_flow_caption, echo=FALSE}
+user_flow_cap <- format_caption(figure_caps, "user_flow")
+```
+```{r user_flow, fig.cap=user_flow_cap, fig.ext='png', dpi=300}
+experiment_nodes <- c(
+  "Wikipedia visitors on Desktop",
+  "Italian (2.85%)", "Persian (0.61%)", "Catalan (0.23%)", "Polish (2.06%)", "Other Languages (94.3%)",
+  "Eligible for test", "Not in Event Logging", "In Event Logging",
+  "50% enrolled into A/B Test", "Not in test, but in EL",
+  "1/3 assigned to Test (Recall)", "1/3 assigned to Test (Random)", "1/3 assigned to Control"
+)
+experiment_edges <- list(
+  "Wikipedia visitors on Desktop" = list(
+    "Italian (2.85%)" = 0.028,
+    "Persian (0.61%)" = 0.006,
+    "Catalan (0.23%)" = 0.002,
+    "Polish (2.06%)" = 0.021,
+    "Other Languages (94.3%)" = 0.943
+  ),
+  "Other Languages (94.3%)" = list("In Event Logging" = 1/200, "Not in Event Logging" = 199/200),
+  "Italian (2.85%)" = list("Eligible for test" = 1/50, "Not in Event Logging" = 49/50),
+  "Polish (2.06%)" = list("Eligible for test" = 1/50, "Not in Event Logging" = 49/50),
+  "Persian (0.61%)" = list("Eligible for test" = 1/10, "Not in Event Logging" = 9/10),
+  "Catalan (0.23%)" = list("Eligible for test" = 1/10, "Not in Event Logging" = 9/10),
+  "Eligible for test" = list("50% enrolled into A/B Test" = 1/2, "Not in test, but in EL" = 1/2),
+  "50% enrolled into A/B Test" = list("1/3 assigned to Control" = 1/3, "1/3 assigned to Test (Recall)" = 1/3, "1/3 assigned to Test (Random)" = 1/3)
+)
+ds <- riverplot::default.style(); ds$col <- "gray"; ds$srt <- 45
+visitor_flow <- riverplot::makeRiver(
+  experiment_nodes, experiment_edges,
+  node_xpos = c(1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5),
+  node_styles = list(
+    "Wikipedia visitors on Desktop" = list(col = "orange"),
+    "Polish (2.06%)" = list(col = "orange"),
+    "Catalan (0.23%)" = list(col = "orange"),
+    "Persian (0.61%)" = list(col = "orange"),
+    "Italian (2.85%)" = list(col = "orange"),
+    "Eligible for test" = list(col = "orange"),
+    "50% enrolled into A/B Test" = list(col = "orange"),
+    "1/3 assigned to Control" = list(col = RColorBrewer::brewer.pal(3, "Set1")[1]),
+    "1/3 assigned to Test (Random)" = list(col = RColorBrewer::brewer.pal(3, "Set1")[2]),
+    "1/3 assigned to Test (Recall)" = list(col = RColorBrewer::brewer.pal(3, "Set1")[3])
+  )
+)
+x <- plot(visitor_flow, node_margin = 1.5, default_style = ds, fix.pdf = TRUE)
+```
+
+Once a visitor has been enrolled into the A/B test, there are randomly assigned to one of the following groups:
+
+```{r "test group description", results='asis', echo=FALSE}
+descriptions <- list(
+  `Control` = "This group received the baseline user experience, which only includes the search results from the wiki they are on. To make their experience comparable to the test groups with respect to latency, we performed the search across the additional indices, but did not show the results to the end user.",
+  `Test (Random)` = "This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered randomly.",
+  `Test (Recall)` = "This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered according to recall -- the volume of search results returned for each respective wiki."
+)
+if (is_html()) {
+  cat("<span class = \"test-group-1\">Control</span>
+:   ", descriptions$`Control` , "
+
+<span class = \"test-group-2\">Test (Random)</span>
+:   ", descriptions$`Test (Random)` , "
+
+<span class = \"test-group-3\">Test (Recall)</span>
+:   ", descriptions$`Test (Recall)`)
+} else {
+  cat("\\begin{itemize}
+  \\item{\\textbf{Control}: ", descriptions$`Control` , "}
+  \\item{\\textbf{Test (Random)}: ", descriptions$`Test (Random)` , "}
+  \\item{\\textbf{Test (Recall)}: ", descriptions$`Test (Recall)` , "}
+\\end{itemize}")
+}
+```
+
+Nullam quis risus eget urna mollis ornare vel eu leo. Vestibulum id ligula porta felis euismod semper. Maecenas sed diam eget risus varius blandit sit amet non magna. Donec ullamcorper nulla non metus auctor fringilla. Aenean lacinia bibendum nulla sed consectetur. Nullam quis risus eget urna mollis ornare vel eu leo. Cras mattis consectetur purus sit amet fermentum.
+
+## Analysis
+
+Cras justo odio, dapibus ac facilisis in, egestas eget quam. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam porta sem malesuada magna mollis euismod. Donec ullamcorper nulla non metus auctor fringilla.
+
+# Results
+
+Donec sed odio dui. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+
+```{r data}
+load(path("data/T156300.RData")) # loads 'searches' and 'indices'
+```
+
+```{r summary_stats_caption, results=ifelse(is_html(), 'asis', 'hide'), echo=FALSE}
+summary_stats_cap <- format_caption(table_caps, "sessions_enrolled")
+print_caption(summary_stats_cap)
+```
+```{r summary_stats, results='asis'}
+searches %>%
+  group_by(Wiki = wiki, group) %>%
+  summarize(sessions = length(unique(session_id))) %>%
+  tidyr::spread(group, sessions) %>%
+  fable(summary_stats_cap)
+```
+
+Aenean lacinia bibendum nulla sed consectetur. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam quis risus eget urna mollis ornare vel eu leo. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+
+## Zero Results Rate (ZRR)
+
+The zero results rate (ZRR) -- proportion of searches yielding zero results -- is one of Discovery's Search Team's key performance indicators (KPIs), and we are always interested in lowering that number (but not at the expense of results' relevance). While we were primarily interested in searchers' engagement with the search result for this test, we included this section as a consistency check -- that the zero results rate is lower when a cross-wiki search is performed.
+
+```{r zrr_data}
+zrr <- searches %>%
+  group_by(wiki, group, serp_id) %>%
+  summarize(
+    same = any(`cirrus log: some same-wiki results`),
+    sister = any(`cirrus log: some sister-wiki results`),
+    either = same || sister
+  ) %>%
+  summarize(
+    total_searches = n(),
+    `ZRR when counting just same-wiki results` = sum(!same),
+    `ZRR when including sister-wiki results` = sum(!either)
+  ) %>%
+  ungroup %>%
+  tidyr::gather(results, zr_searches, -c(wiki, group, total_searches)) %>%
+  group_by(wiki, group, results) %>%
+  dplyr::do(binom::binom.bayes(.$zr_searches, .$total_searches, conf.level = 0.95))
+```
+```{r zrr_caption, include=FALSE}
+zrr_cap <- format_caption(figure_caps, "zero_results_rate")
+```
+```{r zrr_plot, echo=FALSE, fig.cap=zrr_cap}
+ggplot(zrr, aes(x = 1, y = mean, color = results, ymin = lower, ymax = upper)) +
+  geom_hline(aes(yintercept = mean), linetype = "dashed", color = RColorBrewer::brewer.pal(3, "Dark2")[2],
+             data = keep_where(zrr, results == "ZRR when counting just same-wiki results")) +
+  geom_pointrange(position = position_dodge(width = 0.15)) +
+  geom_text(aes(label = sprintf("  %.1f%%", 100 * mean), y = mean - 0.005, hjust = "left", vjust = "top"),
+            position = position_dodge(width = 0.15)) +
+  facet_grid(wiki ~ group, scales = "free_y") +
+  scale_x_continuous(limits = c(0.94, 1.07)) +
+  scale_color_brewer("Searches by type of results", palette = "Dark2", direction = -1) +
+  scale_y_continuous("Zero results rate", labels = scales::percent_format()) +
+  theme_minimal(base_family = "GillSans") +
+  theme(legend.position = "bottom",
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        strip.background = element_rect(fill = "gray90"),
+        panel.border = element_rect(color = "gray30", fill = NA)) +
+  labs(x = NULL)
+```
+
+## Engagement
+
+Curabitur blandit tempus porttitor. Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit sit amet non magna.
+
+```{r hypothesis_1_data}
+searches_H1 <- searches %>%
+  group_by(serp_id) %>%
+  keep_where(
+    (group == "Control" & `cirrus log: some same-wiki results`) |
+      (group %in% c("Test (Recall)", "Test (Random)") & `cirrus log: some sister-wiki results`)
+  ) %>%
+  select(serp_id) %>%
+  dplyr::right_join(searches, by = "serp_id") %>%
+  group_by(wiki, group, serp_id) %>%
+  summarize(clickthrough = any(event != "SERP")) %>%
+  summarize(searches = n(), clickthroughs = sum(clickthrough)) %>%
+  group_by(wiki, group) %>%
+  dplyr::do(binom::binom.bayes(.$clickthroughs, .$searches, conf.level = 0.95))
+```
+```{r hypothesis_1_caption, include=FALSE}
+hypothesis_1_cap <- format_caption(figure_caps, "clickthrough_rates")
+```
+```{r hypothesis_1_plot, echo=FALSE, fig.cap=hypothesis_1_cap}
+searches_H1 %>%
+  ggplot(aes(x = 1, color = group, y = mean, ymin = lower, ymax = upper)) +
+  geom_hline(aes(yintercept = mean), linetype = "dashed", color = RColorBrewer::brewer.pal(3, "Set1")[1],
+             data = keep_where(searches_H1, group == "Control")) +
+  geom_pointrange(position = position_dodge(width = 0.5)) +
+  geom_text(aes(label = sprintf("%.1f%%", 100 * mean), y = upper + 0.0025, vjust = "bottom"),
+            position = position_dodge(width = 0.5)) +
+  facet_wrap(~ wiki, nrow = 1) +
+  scale_color_brewer("Group", palette = "Set1") +
+  scale_y_continuous("Clickthrough Rate", labels = scales::percent_format()) +
+  theme_minimal(base_family = "GillSans") +
+  theme(legend.position = "bottom",
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.x = element_blank(),
+        strip.background = element_rect(fill = "gray90"),
+        panel.border = element_rect(color = "gray30", fill = NA)) +
+  labs(x = NULL, title = "Clickthrough rates of experimental groups across wikis",
+       subtitle = "Only including controls' searches with same-wiki results and test groups' searches with sister-wiki results")
+```
+
+Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+## Positioning
+
+Vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitor. Nulla vitae elit libero, a pharetra augue. Donec ullamcorper nulla non metus auctor fringilla. Cras mattis consectetur purus sit amet fermentum. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.
+
+```{r sister_clicks_caption, results=ifelse(is_html(), 'asis', 'hide'), echo=FALSE}
+sister_clicks_cap <- format_caption(table_caps, "sister_clicks")
+print_caption(sister_clicks_cap)
+```
+```{r sister_clicks_table, results=ifelse(is_html(), 'markup', 'asis')}
+sister_clicks <- searches %>%
+  keep_where(
+    group %in% c("Test (Random)", "Test (Recall)"),
+    event == "sister-project click",
+    `cirrus log: some sister-wiki results`
+  ) %>%
+  mutate(
+    destination = if_else(destination == "Article" & `sister project` == "commons", "File", destination),
+    `sister project` = stringi::stri_trans_totitle(`sister project`),
+    `sister project` = if_else(`sister project` == "Commons", "Commons (or same)", `sister project`)
+  ) %>%
+  arrange(wiki, group, timestamp) %>%
+  group_by(wiki, group, serp_id) %>%
+  select(Wiki = wiki, Group = group, Session = session_id, Search = serp_id, dt = timestamp,
+         `Position of clicked result` = `clicked-result position`,
+         `Sister Project` = `sister project`, Destination = destination) %>%
+  ungroup
+if (is_html()) {
+  sister_clicks %>%
+    mutate(`Position of clicked result` = vapply(`Position of clicked result`, toOrdinal::toOrdinal, ""))
+} else {
+  sister_clicks %>%
+    mutate(Weight = case_when(
+      .$Destination == "File" ~ 1/4,
+      .$Destination == "Multimedia Search" ~ 1/3,
+      .$Destination == "More Results" ~ 1/2,
+      .$Destination == "Article" ~ 2/3
+    )) %>%
+    group_by(Wiki, Group) %>%
+    dplyr::sample_n(2, weight = Weight) %>%
+    mutate(`Position of result` = vapply(`Position of clicked result`, toOrdinal::toOrdinal, "")) %>%
+    select(-c(Session, Search, dt, Weight, `Position of clicked result`)) %>%
+    fable(sister_clicks_cap)
+}
+```
+
+# Discussion
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam id dolor id nibh ultricies vehicula ut id elit. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam id dolor id nibh ultricies vehicula ut id elit.
+
+```{r results='asis', echo=FALSE}
+if (is_html()) {
+  cat("# References\n")
+} else {
+  cat("\\nocite{*}\n")
+}
+```

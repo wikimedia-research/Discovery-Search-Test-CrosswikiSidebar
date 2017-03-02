@@ -31,3 +31,18 @@ vignettes/*.pdf
 # Temporary files created by R markdown
 *.utf8.md
 *.knit.md
+.Rproj.user
+*.bbl
+*.nb.html
+docs/index.md
+docs/index.tex
+
+# Data
+*.RData
+*.tsv.gz
+
+# PDF version of the report that will not be uploaded
+docs/index.pdf
+
+# Libs, etc. that will be uploaded on first draft but can be ignored for now
+docs/index_files/*

@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+<meta name="date" content="2017-03-01" />
+
+<title>Cross-wiki Search A/B Test</title>
+
+<script src="index_files/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="index_files/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
+<script src="index_files/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="index_files/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="index_files/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="index_files/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="index_files/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="index_files/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="index_files/navigation-1.1/tabsets.js"></script>
+<script src="index_files/navigation-1.1/codefolding.js"></script>
+<link href="index_files/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="index_files/pagedtable-1.1/js/pagedtable.js"></script>
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; background-color: #303030; color: #cccccc; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; }
+td.sourceCode { padding-left: 5px; }
+pre, code { color: #cccccc; background-color: #303030; }
+code > span.kw { color: #f0dfaf; } /* Keyword */
+code > span.dt { color: #dfdfbf; } /* DataType */
+code > span.dv { color: #dcdccc; } /* DecVal */
+code > span.bn { color: #dca3a3; } /* BaseN */
+code > span.fl { color: #c0bed1; } /* Float */
+code > span.ch { color: #dca3a3; } /* Char */
+code > span.st { color: #cc9393; } /* String */
+code > span.co { color: #7f9f7f; } /* Comment */
+code > span.ot { color: #efef8f; } /* Other */
+code > span.al { color: #ffcfaf; } /* Alert */
+code > span.fu { color: #efef8f; } /* Function */
+code > span.er { color: #c3bf9f; } /* Error */
+code > span.wa { color: #7f9f7f; font-weight: bold; } /* Warning */
+code > span.cn { color: #dca3a3; font-weight: bold; } /* Constant */
+code > span.sc { color: #dca3a3; } /* SpecialChar */
+code > span.vs { color: #cc9393; } /* VerbatimString */
+code > span.ss { color: #cc9393; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { } /* Variable */
+code > span.cf { color: #f0dfaf; } /* ControlFlow */
+code > span.op { color: #f0efd0; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #ffcfaf; font-weight: bold; } /* Preprocessor */
+code > span.at { } /* Attribute */
+code > span.do { color: #7f9f7f; } /* Documentation */
+code > span.an { color: #7f9f7f; font-weight: bold; } /* Annotation */
+code > span.cv { color: #7f9f7f; font-weight: bold; } /* CommentVar */
+code > span.in { color: #7f9f7f; font-weight: bold; } /* Information */
+div.sourceCode {
+  overflow-x: visible;
+}
+</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+
+<style type="text/css">
+  p.abstract{
+    text-align: center;
+    font-weight: bold;
+  }
+  div.abstract{
+    margin: auto;
+    width: 90%;
+  }
+</style>
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3,h4",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="fluid-row" id="header">
+
+<div class="btn-group pull-right">
+<button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Cross-wiki Search A/B Test</h1>
+<h3 class="subtitle"><em>Discovering Content On Wikipedia’s Sister Projects</em></h3>
+<h4 class="author"><em>Erik Bernhardson</em></h4>
+<address class="author_afil">
+Senior Software Engineer, Wikimedia Foundation<br><h4 class="author"><em>Jan Drewniak</em></h4>
+<address class="author_afil">
+User Experience Engineer, Wikimedia Foundation<br><h4 class="author"><em>Dan Garry</em></h4>
+<address class="author_afil">
+Product Manager (Search Backend), Wikimedia Foundation<br><h4 class="author"><em>Mikhail Popov</em></h4>
+<address class="author_afil">
+Data Analyst, Wikimedia Foundation<br><h4 class="author"><em>Deb Tankersley</em></h4>
+<address class="author_afil">
+Product Manager (Analysis, Search Frontend), Wikimedia Foundation<br><h4 class="date"><em>01 March 2017</em></h4>
+<div class="abstract">
+<p class="abstract">Abstract</p>
+Donec ullamcorper nulla non metus auctor fringilla. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Maecenas sed diam eget risus varius blandit sit amet non magna. Sed posuere consectetur est at lobortis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+</div>
+
+</div>
+
+
+<script type="text/javascript">
+$(function() {
+  /* Lets the user click on the images to view them in full resolution. */
+  $("div.figure img").wrap(function() {
+    var link = $('<a/>');
+    link.attr('href', $(this).attr('src'));
+    link.attr('title', $(this).attr('alt'));
+    link.attr('target', '_blank');
+    return link;
+  });
+  $("p.abstract").text("Executive Summary");
+  $("div#wmf").wrap('<a href="https://wikimediafoundation.org/" />');
+});
+</script>
+<p>
+{ <a href="https://github.com/wikimedia-research/Discovery-Search-Test-CrosswikiSidebar/blob/master/docs/index.Rmd">RMarkdown Source</a> | <a href="https://github.com/wikimedia-research/Discovery-Search-Test-CrosswikiSidebar">Analysis Codebase</a> }
+</p>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>Donec id elit non mi porta gravida at eget metus. Nullam quis risus eget urna mollis ornare vel eu leo. Sed posuere consectetur est at lobortis. Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+<div class="figure" style="text-align: center">
+<img src="index_files/figure-html/example_figure-1.png" alt="**Figure 1**: Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering."  />
+<p class="caption">
+<strong>Figure 1</strong>: Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering.
+</p>
+</div>
+<p>Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Aenean lacinia bibendum nulla sed consectetur.</p>
+<p>The two primary questions we wanted to answer are:</p>
+<ul>
+<li><p>Did users who saw additional (cross-wiki) results click on those results (including “More Results”)?</p></li>
+<li><p>Did the order of the wikis matter? That is, were users actually clicking on relevant results or just showed up at the top?</p></li>
+</ul>
+<p>Each wiki was shown as a box in a sidebar (see Figure 1)…</p>
+</div>
+<div id="methods" class="section level1">
+<h1>Methods</h1>
+<p>Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">import<span class="op">::</span><span class="kw">from</span>(dplyr, group_by, ungroup, <span class="dt">keep_where =</span> filter, mutate, arrange, select, transmute, left_join, summarize, bind_rows, case_when, if_else, rename)
+<span class="kw">library</span>(ggplot2)</code></pre></div>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">experiment_nodes &lt;-<span class="st"> </span><span class="kw">c</span>(
+  <span class="st">&quot;Wikipedia visitors on Desktop&quot;</span>,
+  <span class="st">&quot;Italian (2.85%)&quot;</span>, <span class="st">&quot;Persian (0.61%)&quot;</span>, <span class="st">&quot;Catalan (0.23%)&quot;</span>, <span class="st">&quot;Polish (2.06%)&quot;</span>, <span class="st">&quot;Other Languages (94.3%)&quot;</span>,
+  <span class="st">&quot;Eligible for test&quot;</span>, <span class="st">&quot;Not in Event Logging&quot;</span>, <span class="st">&quot;In Event Logging&quot;</span>,
+  <span class="st">&quot;50% enrolled into A/B Test&quot;</span>, <span class="st">&quot;Not in test, but in EL&quot;</span>,
+  <span class="st">&quot;1/3 assigned to Test (Recall)&quot;</span>, <span class="st">&quot;1/3 assigned to Test (Random)&quot;</span>, <span class="st">&quot;1/3 assigned to Control&quot;</span>
+)
+experiment_edges &lt;-<span class="st"> </span><span class="kw">list</span>(
+  <span class="st">&quot;Wikipedia visitors on Desktop&quot;</span> =<span class="st"> </span><span class="kw">list</span>(
+    <span class="st">&quot;Italian (2.85%)&quot;</span> =<span class="st"> </span><span class="fl">0.028</span>,
+    <span class="st">&quot;Persian (0.61%)&quot;</span> =<span class="st"> </span><span class="fl">0.006</span>,
+    <span class="st">&quot;Catalan (0.23%)&quot;</span> =<span class="st"> </span><span class="fl">0.002</span>,
+    <span class="st">&quot;Polish (2.06%)&quot;</span> =<span class="st"> </span><span class="fl">0.021</span>,
+    <span class="st">&quot;Other Languages (94.3%)&quot;</span> =<span class="st"> </span><span class="fl">0.943</span>
+  ),
+  <span class="st">&quot;Other Languages (94.3%)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;In Event Logging&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">200</span>, <span class="st">&quot;Not in Event Logging&quot;</span> =<span class="st"> </span><span class="dv">199</span><span class="op">/</span><span class="dv">200</span>),
+  <span class="st">&quot;Italian (2.85%)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;Eligible for test&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">50</span>, <span class="st">&quot;Not in Event Logging&quot;</span> =<span class="st"> </span><span class="dv">49</span><span class="op">/</span><span class="dv">50</span>),
+  <span class="st">&quot;Polish (2.06%)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;Eligible for test&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">50</span>, <span class="st">&quot;Not in Event Logging&quot;</span> =<span class="st"> </span><span class="dv">49</span><span class="op">/</span><span class="dv">50</span>),
+  <span class="st">&quot;Persian (0.61%)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;Eligible for test&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">10</span>, <span class="st">&quot;Not in Event Logging&quot;</span> =<span class="st"> </span><span class="dv">9</span><span class="op">/</span><span class="dv">10</span>),
+  <span class="st">&quot;Catalan (0.23%)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;Eligible for test&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">10</span>, <span class="st">&quot;Not in Event Logging&quot;</span> =<span class="st"> </span><span class="dv">9</span><span class="op">/</span><span class="dv">10</span>),
+  <span class="st">&quot;Eligible for test&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;50% enrolled into A/B Test&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">2</span>, <span class="st">&quot;Not in test, but in EL&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">2</span>),
+  <span class="st">&quot;50% enrolled into A/B Test&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="st">&quot;1/3 assigned to Control&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">3</span>, <span class="st">&quot;1/3 assigned to Test (Recall)&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">3</span>, <span class="st">&quot;1/3 assigned to Test (Random)&quot;</span> =<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">3</span>)
+)
+ds &lt;-<span class="st"> </span>riverplot<span class="op">::</span><span class="kw">default.style</span>(); ds<span class="op">$</span>col &lt;-<span class="st"> &quot;gray&quot;</span>; ds<span class="op">$</span>srt &lt;-<span class="st"> </span><span class="dv">45</span>
+visitor_flow &lt;-<span class="st"> </span>riverplot<span class="op">::</span><span class="kw">makeRiver</span>(
+  experiment_nodes, experiment_edges,
+  <span class="dt">node_xpos =</span> <span class="kw">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">5</span>),
+  <span class="dt">node_styles =</span> <span class="kw">list</span>(
+    <span class="st">&quot;Wikipedia visitors on Desktop&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> <span class="st">&quot;orange&quot;</span>),
+    <span class="st">&quot;Polish (2.06%)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> <span class="st">&quot;orange&quot;</span>),
+    <span class="st">&quot;Catalan (0.23%)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> <span class="st">&quot;orange&quot;</span>),
+    <span class="st">&quot;Persian (0.61%)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> <span class="st">&quot;orange&quot;</span>),
+    <span class="st">&quot;Italian (2.85%)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> <span class="st">&quot;orange&quot;</span>),
+    <span class="st">&quot;Eligible for test&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> <span class="st">&quot;orange&quot;</span>),
+    <span class="st">&quot;50% enrolled into A/B Test&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> <span class="st">&quot;orange&quot;</span>),
+    <span class="st">&quot;1/3 assigned to Control&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> RColorBrewer<span class="op">::</span><span class="kw">brewer.pal</span>(<span class="dv">3</span>, <span class="st">&quot;Set1&quot;</span>)[<span class="dv">1</span>]),
+    <span class="st">&quot;1/3 assigned to Test (Random)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> RColorBrewer<span class="op">::</span><span class="kw">brewer.pal</span>(<span class="dv">3</span>, <span class="st">&quot;Set1&quot;</span>)[<span class="dv">2</span>]),
+    <span class="st">&quot;1/3 assigned to Test (Recall)&quot;</span> =<span class="st"> </span><span class="kw">list</span>(<span class="dt">col =</span> RColorBrewer<span class="op">::</span><span class="kw">brewer.pal</span>(<span class="dv">3</span>, <span class="st">&quot;Set1&quot;</span>)[<span class="dv">3</span>])
+  )
+)
+x &lt;-<span class="st"> </span><span class="kw">plot</span>(visitor_flow, <span class="dt">node_margin =</span> <span class="fl">1.5</span>, <span class="dt">default_style =</span> ds, <span class="dt">fix.pdf =</span> <span class="ot">TRUE</span>)</code></pre></div>
+<div class="figure">
+<img src="index_files/figure-html/user_flow-1.png" alt="Figure 2: Flow of Wikipedia visitors into the A/B test." />
+<p class="caption"><strong>Figure 2</strong>: Flow of Wikipedia visitors into the A/B test.</p>
+</div>
+<p>Once a visitor has been enrolled into the A/B test, there are randomly assigned to one of the following groups:</p>
+<dl>
+<dt><span class="test-group-1">Control</span></dt>
+<dd>This group received the baseline user experience, which only includes the search results from the wiki they are on. To make their experience comparable to the test groups with respect to latency, we performed the search across the additional indices, but did not show the results to the end user.
+</dd>
+<dt><span class="test-group-2">Test (Random)</span></dt>
+<dd>This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered randomly.
+</dd>
+<dt><span class="test-group-3">Test (Recall)</span></dt>
+<dd>This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered according to recall – the volume of search results returned for each respective wiki.
+</dd>
+</dl>
+<p>Nullam quis risus eget urna mollis ornare vel eu leo. Vestibulum id ligula porta felis euismod semper. Maecenas sed diam eget risus varius blandit sit amet non magna. Donec ullamcorper nulla non metus auctor fringilla. Aenean lacinia bibendum nulla sed consectetur. Nullam quis risus eget urna mollis ornare vel eu leo. Cras mattis consectetur purus sit amet fermentum.</p>
+</div>
+<div id="analysis" class="section level2">
+<h2>Analysis</h2>
+<p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam porta sem malesuada magna mollis euismod. Donec ullamcorper nulla non metus auctor fringilla.</p>
+</div>
+</div>
+<div id="results" class="section level1">
+<h1>Results</h1>
+<p>Donec sed odio dui. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">load</span>(<span class="kw">path</span>(<span class="st">&quot;data/T156300.RData&quot;</span>)) <span class="co"># loads &#39;searches&#39; and &#39;indices&#39;</span></code></pre></div>
+<p class="caption">
+<strong>Table 1</strong>: Number of search sessions used for analysis by wiki and group.
+</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">searches <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(<span class="dt">Wiki =</span> wiki, group) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">sessions =</span> <span class="kw">length</span>(<span class="kw">unique</span>(session_id))) <span class="op">%&gt;%</span>
+<span class="st">  </span>tidyr<span class="op">::</span><span class="kw">spread</span>(group, sessions) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">fable</span>(summary_stats_cap)</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Wiki</th>
+<th align="right">Control</th>
+<th align="right">Test (Random)</th>
+<th align="right">Test (Recall)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Catalan Wikipedia</td>
+<td align="right">460</td>
+<td align="right">413</td>
+<td align="right">414</td>
+</tr>
+<tr class="even">
+<td align="left">Italian Wikipedia</td>
+<td align="right">664</td>
+<td align="right">664</td>
+<td align="right">710</td>
+</tr>
+<tr class="odd">
+<td align="left">Persian Wikipedia</td>
+<td align="right">664</td>
+<td align="right">631</td>
+<td align="right">658</td>
+</tr>
+<tr class="even">
+<td align="left">Polish Wikipedia</td>
+<td align="right">454</td>
+<td align="right">456</td>
+<td align="right">432</td>
+</tr>
+</tbody>
+</table>
+<p>Aenean lacinia bibendum nulla sed consectetur. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam quis risus eget urna mollis ornare vel eu leo. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.</p>
+<div id="zero-results-rate-zrr" class="section level2">
+<h2>Zero Results Rate (ZRR)</h2>
+<p>The zero results rate (ZRR) – proportion of searches yielding zero results – is one of Discovery’s Search Team’s key performance indicators (KPIs), and we are always interested in lowering that number (but not at the expense of results’ relevance). While we were primarily interested in searchers’ engagement with the search result for this test, we included this section as a consistency check – that the zero results rate is lower when a cross-wiki search is performed.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">zrr &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(wiki, group, serp_id) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(
+    <span class="dt">same =</span> <span class="kw">any</span>(<span class="st">`</span><span class="dt">cirrus log: some same-wiki results</span><span class="st">`</span>),
+    <span class="dt">sister =</span> <span class="kw">any</span>(<span class="st">`</span><span class="dt">cirrus log: some sister-wiki results</span><span class="st">`</span>),
+    <span class="dt">either =</span> same <span class="op">||</span><span class="st"> </span>sister
+  ) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(
+    <span class="dt">total_searches =</span> <span class="kw">n</span>(),
+    <span class="st">`</span><span class="dt">ZRR when counting just same-wiki results</span><span class="st">`</span> =<span class="st"> </span><span class="kw">sum</span>(<span class="op">!</span>same),
+    <span class="st">`</span><span class="dt">ZRR when including sister-wiki results</span><span class="st">`</span> =<span class="st"> </span><span class="kw">sum</span>(<span class="op">!</span>either)
+  ) <span class="op">%&gt;%</span>
+<span class="st">  </span>ungroup <span class="op">%&gt;%</span>
+<span class="st">  </span>tidyr<span class="op">::</span><span class="kw">gather</span>(results, zr_searches, <span class="op">-</span><span class="kw">c</span>(wiki, group, total_searches)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(wiki, group, results) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">do</span>(binom<span class="op">::</span><span class="kw">binom.bayes</span>(.<span class="op">$</span>zr_searches, .<span class="op">$</span>total_searches, <span class="dt">conf.level =</span> <span class="fl">0.95</span>))</code></pre></div>
+<div class="figure">
+<img src="index_files/figure-html/zrr_plot-1.png" alt="Figure 3: Zero results rate of experimental groups across wikis by type of results." />
+<p class="caption"><strong>Figure 3</strong>: Zero results rate of experimental groups across wikis by type of results.</p>
+</div>
+</div>
+<div id="engagement" class="section level2">
+<h2>Engagement</h2>
+<p>Curabitur blandit tempus porttitor. Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">searches_H1 &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(serp_id) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">keep_where</span>(
+    (group <span class="op">==</span><span class="st"> &quot;Control&quot;</span> <span class="op">&amp;</span><span class="st"> `</span><span class="dt">cirrus log: some same-wiki results</span><span class="st">`</span>) <span class="op">|</span>
+<span class="st">      </span>(group <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Test (Recall)&quot;</span>, <span class="st">&quot;Test (Random)&quot;</span>) <span class="op">&amp;</span><span class="st"> `</span><span class="dt">cirrus log: some sister-wiki results</span><span class="st">`</span>)
+  ) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">select</span>(serp_id) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">right_join</span>(searches, <span class="dt">by =</span> <span class="st">&quot;serp_id&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(wiki, group, serp_id) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">clickthrough =</span> <span class="kw">any</span>(event <span class="op">!=</span><span class="st"> &quot;SERP&quot;</span>)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">searches =</span> <span class="kw">n</span>(), <span class="dt">clickthroughs =</span> <span class="kw">sum</span>(clickthrough)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(wiki, group) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">do</span>(binom<span class="op">::</span><span class="kw">binom.bayes</span>(.<span class="op">$</span>clickthroughs, .<span class="op">$</span>searches, <span class="dt">conf.level =</span> <span class="fl">0.95</span>))</code></pre></div>
+<div class="figure">
+<img src="index_files/figure-html/hypothesis_1_plot-1.png" alt="Figure 4: Clickthrough rates of experimental groups, split by wiki. In the control group, only searches that yielded some same-wiki results were considered. In the two test groups, only searches that yielded some sister-wiki results were considered." />
+<p class="caption"><strong>Figure 4</strong>: Clickthrough rates of experimental groups, split by wiki. In the control group, only searches that yielded some same-wiki results were considered. In the two test groups, only searches that yielded some sister-wiki results were considered.</p>
+</div>
+<p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+</div>
+<div id="positioning" class="section level2">
+<h2>Positioning</h2>
+<p>Vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitor. Nulla vitae elit libero, a pharetra augue. Donec ullamcorper nulla non metus auctor fringilla. Cras mattis consectetur purus sit amet fermentum. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.</p>
+<p class="caption">
+<strong>Table 2</strong>: Clicks on cross-wiki search results
+</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sister_clicks &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">keep_where</span>(
+    group <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Test (Random)&quot;</span>, <span class="st">&quot;Test (Recall)&quot;</span>),
+    event <span class="op">==</span><span class="st"> &quot;sister-project click&quot;</span>,
+    <span class="st">`</span><span class="dt">cirrus log: some sister-wiki results</span><span class="st">`</span>
+  ) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">mutate</span>(
+    <span class="dt">destination =</span> <span class="kw">if_else</span>(destination <span class="op">==</span><span class="st"> &quot;Article&quot;</span> <span class="op">&amp;</span><span class="st"> `</span><span class="dt">sister project</span><span class="st">`</span> <span class="op">==</span><span class="st"> &quot;commons&quot;</span>, <span class="st">&quot;File&quot;</span>, destination),
+    <span class="st">`</span><span class="dt">sister project</span><span class="st">`</span> =<span class="st"> </span>stringi<span class="op">::</span><span class="kw">stri_trans_totitle</span>(<span class="st">`</span><span class="dt">sister project</span><span class="st">`</span>),
+    <span class="st">`</span><span class="dt">sister project</span><span class="st">`</span> =<span class="st"> </span><span class="kw">if_else</span>(<span class="st">`</span><span class="dt">sister project</span><span class="st">`</span> <span class="op">==</span><span class="st"> &quot;Commons&quot;</span>, <span class="st">&quot;Commons (or same)&quot;</span>, <span class="st">`</span><span class="dt">sister project</span><span class="st">`</span>)
+  ) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">arrange</span>(wiki, group, timestamp) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(wiki, group, serp_id) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">select</span>(<span class="dt">Wiki =</span> wiki, <span class="dt">Group =</span> group, <span class="dt">Session =</span> session_id, <span class="dt">Search =</span> serp_id, <span class="dt">dt =</span> timestamp,
+         <span class="st">`</span><span class="dt">Position of clicked result</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">clicked-result position</span><span class="st">`</span>,
+         <span class="st">`</span><span class="dt">Sister Project</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">sister project</span><span class="st">`</span>, <span class="dt">Destination =</span> destination) <span class="op">%&gt;%</span>
+<span class="st">  </span>ungroup
+<span class="cf">if</span> (<span class="kw">is_html</span>()) {
+  sister_clicks <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="st">`</span><span class="dt">Position of clicked result</span><span class="st">`</span> =<span class="st"> </span><span class="kw">vapply</span>(<span class="st">`</span><span class="dt">Position of clicked result</span><span class="st">`</span>, toOrdinal<span class="op">::</span>toOrdinal, <span class="st">&quot;&quot;</span>))
+} <span class="cf">else</span> {
+  sister_clicks <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">Weight =</span> <span class="kw">case_when</span>(
+      .<span class="op">$</span>Destination <span class="op">==</span><span class="st"> &quot;File&quot;</span> <span class="op">~</span><span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">4</span>,
+      .<span class="op">$</span>Destination <span class="op">==</span><span class="st"> &quot;Multimedia Search&quot;</span> <span class="op">~</span><span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">3</span>,
+      .<span class="op">$</span>Destination <span class="op">==</span><span class="st"> &quot;More Results&quot;</span> <span class="op">~</span><span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="dv">2</span>,
+      .<span class="op">$</span>Destination <span class="op">==</span><span class="st"> &quot;Article&quot;</span> <span class="op">~</span><span class="st"> </span><span class="dv">2</span><span class="op">/</span><span class="dv">3</span>
+    )) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">group_by</span>(Wiki, Group) <span class="op">%&gt;%</span>
+<span class="st">    </span>dplyr<span class="op">::</span><span class="kw">sample_n</span>(<span class="dv">2</span>, <span class="dt">weight =</span> Weight) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="st">`</span><span class="dt">Position of result</span><span class="st">`</span> =<span class="st"> </span><span class="kw">vapply</span>(<span class="st">`</span><span class="dt">Position of clicked result</span><span class="st">`</span>, toOrdinal<span class="op">::</span>toOrdinal, <span class="st">&quot;&quot;</span>)) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">select</span>(<span class="op">-</span><span class="kw">c</span>(Session, Search, dt, Weight, <span class="st">`</span><span class="dt">Position of clicked result</span><span class="st">`</span>)) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">fable</span>(sister_clicks_cap)
+}</code></pre></div>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["Wiki"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Group"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Session"],"name":[3],"type":["chr"],"align":["left"]},{"label":["Search"],"name":[4],"type":["chr"],"align":["left"]},{"label":["dt"],"name":[5],"type":["S3: POSIXct"],"align":["right"]},{"label":["Position of clicked result"],"name":[6],"type":["chr"],"align":["left"]},{"label":["Sister Project"],"name":[7],"type":["chr"],"align":["left"]},{"label":["Destination"],"name":[8],"type":["chr"],"align":["left"]}],"data":[{"1":"Catalan Wikipedia","2":"Test (Random)","3":"ce6ada5fc40aff69","4":"2d66d732e6200feciz6s86bc","5":"2017-02-15 09:55:50","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"1d6627ccb6e37957","4":"fca8e569b6fa61b0iz72tze4","5":"2017-02-15 14:52:44","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"a11b2d5b53a12460","4":"79c76d135d3be3f4izcyvus6","5":"2017-02-19 17:46:44","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"06e914ca55575d35","4":"7f894b210437433aizff4z77","5":"2017-02-21 10:59:18","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"910f848c70d959e1","4":"3eb639d6cafd1affizfia5yt","5":"2017-02-21 11:26:44","6":"1st","7":"Commons (or same)","8":"Multimedia Search"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"910f848c70d959e1","4":"3eb639d6cafd1affizfia5yt","5":"2017-02-21 11:26:44","6":"1st","7":"Commons (or same)","8":"Multimedia Search"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"d12cce331a788a53","4":"b28cc07c40dd0974izfnc39f","5":"2017-02-21 14:48:28","6":"2nd","7":"Wiktionary","8":"More Results"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"9f6aa4a2670fb662","4":"0f9649b60f30a518izfskykp","5":"2017-02-21 17:15:15","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Catalan Wikipedia","2":"Test (Recall)","3":"efa929ab95ccd5ea","4":"59c0a5850d9ce2b2iz7cnj4g","5":"2017-02-15 19:22:39","6":"2nd","7":"Wikibooks","8":"Article"},{"1":"Catalan Wikipedia","2":"Test (Recall)","3":"9e471c000fa6889b","4":"6c01af4ef44f3c6aiz7l2of6","5":"2017-02-15 23:23:21","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Catalan Wikipedia","2":"Test (Recall)","3":"6c531317fd8b32cb","4":"de809c6fc92bc59dizctfjb4","5":"2017-02-19 15:16:04","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"f557d33d21767344","4":"d9ce53edc3946ed1iz624rbz","5":"2017-02-14 21:46:00","6":"2nd","7":"Wikibooks","8":"Article"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"9edbc5cad22b821b","4":"38dfbe3b29214e66iz7ez1mw","5":"2017-02-15 20:32:52","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"7c9eaceeab704918","4":"60adb945e6ef9250iz91doh7","5":"2017-02-16 23:47:36","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"ca7fc0600bde50a2","4":"35a0ba31fce4dfceizcyodd8","5":"2017-02-19 17:43:38","6":"2nd","7":"Wikiquote","8":"More Results"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"ca7fc0600bde50a2","4":"35a0ba31fce4dfceizcyodd8","5":"2017-02-19 17:45:50","6":"2nd","7":"Wikisource","8":"More Results"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"be48b919cad81df5","4":"a7ff66729b70679eizef90cf","5":"2017-02-20 18:14:59","6":"5th","7":"Wiktionary","8":"Article"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"f91a6afc9c06d709","4":"4ea9351dc7622550izf7n0ik","5":"2017-02-21 07:52:30","6":"2nd","7":"Wikiquote","8":"More Results"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"5f102ead9c838725","4":"9245d89a3987258ciz4f0nji","5":"2017-02-13 18:09:50","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"b984416032114f21","4":"9f9253566d66cb2diz6tcmy6","5":"2017-02-15 10:25:52","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"7de1d49a56ca86f2","4":"e258c130f8bb1e6ciz9l9vaj","5":"2017-02-17 09:04:18","6":"2nd","7":"Wikisource","8":"Article"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"7de1d49a56ca86f2","4":"e258c130f8bb1e6ciz9l9vaj","5":"2017-02-17 09:04:32","6":"2nd","7":"Wikisource","8":"More Results"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"2200104a8cc18603","4":"d66f4aefcfd1f542izd5j3ur","5":"2017-02-19 20:55:56","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"e7d7261cbb61cc8f","4":"f06ac30384a20fbbize1akl8","5":"2017-02-20 11:44:06","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"8871a6e212419d19","4":"a31853eb7b7b8eaaizeo1020","5":"2017-02-20 22:19:53","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"1967e33dd2591f6a","4":"9857acc60b05e92biz6npun1","5":"2017-02-16 07:53:01","6":"2nd","7":"Wiktionary","8":"Article"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"75956f6a9575cc55","4":"9f5ed2262af97c03iz8qo7hm","5":"2017-02-16 18:47:48","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"a4ed7807daeaf643","4":"ec97ed387e158395iz9l6ms9","5":"2017-02-17 09:02:54","6":"3rd","7":"Wikibooks","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"d3cd4f80ef39f5f9","4":"76ab5f6b1ad2e4c1iz9n4h5q","5":"2017-02-17 09:56:19","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"0c5e188524f7092b","4":"52727bf3a69cc196iza6osgb","5":"2017-02-17 19:09:52","6":"3rd","7":"Wikiquote","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"b728e6ad8468b1e5","4":"f0cf41b223c11650izb4smgj","5":"2017-02-18 10:58:37","6":"1st","7":"Commons (or same)","8":"Multimedia Search"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"a039c19c9d26ab67","4":"f1d7b0c4d46c0ea0izcm121j","5":"2017-02-19 11:48:54","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"381627610018f24d","4":"ef3673cbf8aaa108izegcvoa","5":"2017-02-20 19:09:30","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"5c5a04a15e3df517","4":"5506b2b79a1c78e4izfb9qpu","5":"2017-02-21 09:08:42","6":"7th","7":"Wiktionary","8":"Article"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"0650f615a10b01bd","4":"36e742b4e664ad22izfz5f6s","5":"2017-02-21 20:18:41","6":"1st","7":"Commons (or same)","8":"Multimedia Search"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"0650f615a10b01bd","4":"36e742b4e664ad22izfz5f6s","5":"2017-02-21 20:19:07","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"a63eabab4f859929","4":"8626a465fbdda524izg5rbjy","5":"2017-02-21 23:41:15","6":"2nd","7":"Wiktionary","8":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"39a759ab9a871eda","4":"c6deed74678b7936iz6fvitg","5":"2017-02-15 04:11:10","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"39a759ab9a871eda","4":"c6deed74678b7936iz6fvitg","5":"2017-02-15 04:12:03","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"39a759ab9a871eda","4":"c6deed74678b7936iz6fvitg","5":"2017-02-15 04:12:14","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"c395f27785ee82de","4":"2d576fc74edee1cdiz6guuqc","5":"2017-02-15 04:41:59","6":"2nd","7":"Wikinews","8":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"3bd819588c3c956e","4":"5ab3dbdcd7e528f1iz6wsdom","5":"2017-02-15 11:59:25","6":"2nd","7":"Wikivoyage","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"c5c58cdcbb588ce5","4":"948ffd3130f19d43iz6y2j1z","5":"2017-02-15 12:39:38","6":"2nd","7":"Wikiquote","8":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"0642e9f1a0e29e0e","4":"f04689387e5e11a9iz7abfjj","5":"2017-02-15 18:16:20","6":"2nd","7":"Wikiquote","8":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"0642e9f1a0e29e0e","4":"f04689387e5e11a9iz7abfjj","5":"2017-02-15 18:17:03","6":"2nd","7":"Wikiquote","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"97823217a0fb3442","4":"a671e4d377940575iz7ysot8","5":"2017-02-16 05:47:47","6":"2nd","7":"Wikiquote","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"7e0b058e7e29d7e7","4":"27cb405f20aa9affiz84bp91","5":"2017-02-16 08:22:35","6":"2nd","7":"Wiktionary","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"bb84a39e9e5587af","4":"08ff365efa21449fiza4d8su","5":"2017-02-17 17:59:08","6":"2nd","7":"Wikibooks","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"800bfee082d2bdb9","4":"5353f68cc42762eeiza6o70d","5":"2017-02-17 19:03:40","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"c337f34b43b7c291","4":"ba0577ec2e4a30a3izaa046j","5":"2017-02-17 20:37:12","6":"2nd","7":"Wikisource","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"891b3fc343e1c677","4":"7a9cdb6bebfaa405izadn58q","5":"2017-02-17 22:24:08","6":"2nd","7":"Wiktionary","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"873b47cd9cc6f60b","4":"49985372cc5c9e1aizchhklm","5":"2017-02-19 09:41:18","6":"1st","7":"Commons (or same)","8":"Multimedia Search"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"873b47cd9cc6f60b","4":"f72f5f78bfad1947izchixy6","5":"2017-02-19 09:43:48","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"99b5b022f3bae9f1","4":"a86ce03b264f2c90izcro9st","5":"2017-02-19 14:26:50","6":"3rd","7":"Wiktionary","8":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"bcddfc545995c080","4":"42e775bf00389270ize31n0j","5":"2017-02-20 12:33:13","6":"2nd","7":"Wikisource","8":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"8c8c734956713eb5","4":"dd8c10f6ff56dba4izfmnsye","5":"2017-02-21 14:29:48","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"8c8c734956713eb5","4":"00b00abe0afaee91izfmuto6","5":"2017-02-21 14:35:34","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"cdce82a33a96487a","4":"9e9e675e166d0229iz6zf71a","5":"2017-02-15 13:17:12","6":"2nd","7":"Wikibooks","8":"Article"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"5c3f76d01494ce48","4":"f7452fd1c757f8c4iz704dal","5":"2017-02-15 13:36:50","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"ef1fb87d2847f622","4":"9c45d5846e18bf21iz7fli2d","5":"2017-02-15 20:50:13","6":"1st","7":"Commons (or same)","8":"Multimedia Search"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"5fe7a2a5b70418aa","4":"bb748a4ef08e94a9iza3dgwu","5":"2017-02-17 17:30:56","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"45cf72445894c4f4","4":"d3a677a67aa812fdizbeqv4x","5":"2017-02-18 15:37:43","6":"2nd","7":"Wiktionary","8":"More Results"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"e741be7425f97f09","4":"8dd9dcda774428c3izbf8eyz","5":"2017-02-18 15:52:10","6":"5th","7":"Wikinews","8":"More Results"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"e741be7425f97f09","4":"15b880d6b2049910izbf5t0z","5":"2017-02-18 15:52:52","6":"7th","7":"Wikiquote","8":"More Results"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"62913060ede98fc8","4":"a3a2f111258ed2a8izdzraev","5":"2017-02-20 11:00:23","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"18cd60df0487f92a","4":"6a4b01d1de91beb8ize0qhhs","5":"2017-02-20 11:28:31","6":"2nd","7":"Wikisource","8":"More Results"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"c850bab7bd52bfa2","4":"7f1c7b6f784fa1a0ize5789i","5":"2017-02-20 13:33:26","6":"1st","7":"Commons (or same)","8":"Multimedia Search"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"6aa49644def80804","4":"426ca6b6edf48aaeiz77ff1q","5":"2017-02-15 17:01:20","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"2d2149b162085ec5","4":"485714b476b1fdd7iza80dqi","5":"2017-02-17 19:35:46","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"c62a9bdd27f6221d","4":"9b50d5d245fee978izbhixg7","5":"2017-02-18 16:55:27","6":"2nd","7":"Wikiquote","8":"More Results"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"ca638600aaf40f8c","4":"7d5b168a9acc5e85izckppvo","5":"2017-02-19 11:12:58","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"849ee1273298a850","4":"a08adc36b2334c76izcn7zjz","5":"2017-02-19 12:22:30","6":"2nd","7":"Wikisource","8":"More Results"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"01369e4ceb108836","4":"b58f5f14bbdf87d0izd6vzrm","5":"2017-02-19 21:30:36","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"01369e4ceb108836","4":"b58f5f14bbdf87d0izd6vzrm","5":"2017-02-19 21:31:48","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"01369e4ceb108836","4":"4dd61bc4a031065fizd72iui","5":"2017-02-19 21:39:01","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"0defd989ab0bc59d","4":"7ec6bcc3a481695aizdvzjv7","5":"2017-02-20 09:14:54","6":"2nd","7":"Wikiquote","8":"More Results"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"8cad138c1ee0bfce","4":"427811716dcb7319izfa3s8e","5":"2017-02-21 08:39:09","6":"3rd","7":"Wikiquote","8":"More Results"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"828786f965b7d41e","4":"27241535c4f31cfcizg0wg8s","5":"2017-02-21 21:08:39","6":"1st","7":"Commons (or same)","8":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"828786f965b7d41e","4":"bd98b13922529ea9izg135pw","5":"2017-02-21 21:13:55","6":"1st","7":"Commons (or same)","8":"File"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<div id="discussion" class="section level1">
+<h1>Discussion</h1>
+<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam id dolor id nibh ultricies vehicula ut id elit. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
+</div>
+<div id="references" class="section level1 unnumbered">
+<h1>References</h1>
+<div id="refs" class="references">
+<div id="ref-R-base">
+<p>[1] R Core Team. R: A language and environment for statistical computing [Internet]. Vienna, Austria: R Foundation for Statistical Computing; 2016. Available from: <a href="https://www.R-project.org/" class="uri">https://www.R-project.org/</a>.</p>
+</div>
+<div id="ref-R-rmarkdown">
+<p>[2] Allaire J, Cheng J, Xie Y, et al. Rmarkdown: Dynamic documents for r [Internet]. 2016. Available from: <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
+</div>
+<div id="ref-R-ggplot2">
+<p>[3] Wickham H. Ggplot2: Elegant graphics for data analysis [Internet]. Springer-Verlag New York; 2009. Available from: <a href="http://ggplot2.org" class="uri">http://ggplot2.org</a>.</p>
+</div>
+<div id="ref-R-magrittr">
+<p>[4] Bache SM, Wickham H. Magrittr: A forward-pipe operator for r [Internet]. 2014. Available from: <a href="https://CRAN.R-project.org/package=magrittr" class="uri">https://CRAN.R-project.org/package=magrittr</a>.</p>
+</div>
+<div id="ref-R-dplyr">
+<p>[5] Wickham H, Francois R. Dplyr: A grammar of data manipulation [Internet]. 2016. Available from: <a href="https://CRAN.R-project.org/package=dplyr" class="uri">https://CRAN.R-project.org/package=dplyr</a>.</p>
+</div>
+<div id="ref-R-tidyr">
+<p>[6] Wickham H. Tidyr: Easily tidy data with ’spread()’ and ’gather()’ functions [Internet]. 2017. Available from: <a href="https://CRAN.R-project.org/package=tidyr" class="uri">https://CRAN.R-project.org/package=tidyr</a>.</p>
+</div>
+<div id="ref-R-BCDA">
+<p>[7] Popov M. BCDA: Tools for bayesian categorical data analysis [Internet]. Available from: <a href="https://github.com/bearloga/BCDA" class="uri">https://github.com/bearloga/BCDA</a>.</p>
+</div>
+<div id="ref-R-binom">
+<p>[8] Dorai-Raj S. Binom: Binomial confidence intervals for several parameterizations [Internet]. 2014. Available from: <a href="https://CRAN.R-project.org/package=binom" class="uri">https://CRAN.R-project.org/package=binom</a>.</p>
+</div>
+<div id="ref-R-wmf">
+<p>[9] Keyes O, Popov M. Wmf: R code for wikimedia foundation internal usage [Internet]. 2017. Available from: <a href="https://phabricator.wikimedia.org/diffusion/1821/" class="uri">https://phabricator.wikimedia.org/diffusion/1821/</a>.</p>
+</div>
+</div>
+</div>
+
+<div id="wmf" title="By Wikimedia Foundation (Wikimedia Foundation) [CC BY-SA 3.0 (http://creativecommons.org/licenses/by-sa/3.0)], via Wikimedia Commons"></div>
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://tools-static.wmflabs.org/cdnjs/ajax/libs/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
