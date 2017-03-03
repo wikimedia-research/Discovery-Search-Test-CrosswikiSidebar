@@ -134,7 +134,7 @@ Donec id elit non mi porta gravida at eget metus. Nullam quis risus eget urna mo
 
 ```{r example_caption, include=FALSE}
 example_cap <- format_caption(figure_caps, "example")
-example_png <- png::readPNG("example.png", info = TRUE)
+example_png <- png::readPNG("../example.png", info = TRUE)
 example_dim <- attr(example_png, "info")$dim
 ```
 ```{r example_figure, fig.width=0.5*example_dim[1]/72, fig.height=0.5*example_dim[2]/72, fig.cap=example_cap, fig.align='center', fig.ext='png', echo=FALSE}

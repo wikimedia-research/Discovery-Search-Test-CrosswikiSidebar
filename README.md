@@ -2,7 +2,11 @@
 
 [![Creative Commons Attribution 4.0 International License](https://i.creativecommons.org/l/by/4.0/80x15.png)](http://creativecommons.org/licenses/by/4.0/)
 
-This repo is the analysis and report codebase for Discovery's test of cross-wiki search. See [T149806](https://phabricator.wikimedia.org/T149806), [Discovery 2016-17 Q3 goals](https://www.mediawiki.org/wiki/Wikimedia_Engineering/2016-17_Q3_Goals#Discovery) for more information.
+This repo is the analysis and report codebase for Discovery's test of cross-wiki search:
+
+![Example of cross-wiki search results on Polish Wikipedia.](example.png)
+
+See [T149806](https://phabricator.wikimedia.org/T149806), [Discovery 2016-17 Q3 goals](https://www.mediawiki.org/wiki/Wikimedia_Engineering/2016-17_Q3_Goals#Discovery) for more information.
 
 The final report (which is currently a work in progress) can be accessed by visiting [https://wikimedia-research.github.io/Discovery-Search-Test-CrosswikiSidebar/](https://wikimedia-research.github.io/Discovery-Search-Test-CrosswikiSidebar/). A PDF version will be uploaded to Wikimedia Commons once the final draft is completed.
 
