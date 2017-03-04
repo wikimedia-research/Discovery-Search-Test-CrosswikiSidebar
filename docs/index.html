@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2017-03-02" />
+<meta name="date" content="2017-03-03" />
 
 <title>A Test Of Cross-wiki Search</title>
 
@@ -294,10 +294,10 @@ Product Manager (Search Backend), Wikimedia Foundation<br><h4 class="author"><em
 <address class="author_afil">
 Data Analyst, Wikimedia Foundation<br><h4 class="author"><em>Deb Tankersley</em></h4>
 <address class="author_afil">
-Product Manager (Analysis, Search Frontend), Wikimedia Foundation<br><h4 class="date"><em>02 March 2017</em></h4>
+Product Manager (Analysis, Search Frontend), Wikimedia Foundation<br><h4 class="date"><em>03 March 2017</em></h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
-Donec ullamcorper nulla non metus auctor fringilla. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Maecenas sed diam eget risus varius blandit sit amet non magna. Sed posuere consectetur est at lobortis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+Some people seemed to click on the additional cross-wiki results that were shown to them.
 </div>
 
 </div>
@@ -322,29 +322,40 @@ $(function() {
 </p>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>Donec id elit non mi porta gravida at eget metus. Nullam quis risus eget urna mollis ornare vel eu leo. Sed posuere consectetur est at lobortis. Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+<p>The Discovery department’s mission is to make the wealth of knowledge and content in the Wikimedia projects (such as Wikipedia) easily discoverable. The Search team is responsible for maintaining and enhancing the search features and APIs for MediaWiki, such as language detection (i.e. if a French Wikipedia visitor searches in German, then in addition to results from French Wikipedia, they would also get results from German Wikipedia). Its current goal is to add cross-wiki searching – that is, providing search results from other (“sister”) Wikimedia projects (“<em>wikis</em>”) within the same language. For example, if a work (e.g. a book or poem) on French Wikisource contained that German phrase, that user would be shown results from French Wikisource in addition to any results from French and German Wikipedias.</p>
 <div class="figure" style="text-align: center">
 <img src="index_files/figure-html/example_figure-1.png" alt="**Figure 1**: Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering."  />
 <p class="caption">
 <strong>Figure 1</strong>: Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering.
 </p>
 </div>
-<p>Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Aenean lacinia bibendum nulla sed consectetur.</p>
-<p>The two primary questions we wanted to answer are:</p>
+<p>For the users who received the experimental user experience (UX), each additional wiki’s top result was shown as a box in a sidebar with a link to view more results (see Figure 1). There were two groups of users who received the experimental UX and one control group that did not:</p>
+<dl>
+<dt><span class="test-group-1">Control</span></dt>
+<dd>This group received the baseline user experience, which only includes the search results from the wiki they are on. To make their experience comparable to the test groups with respect to latency, we performed the search across the additional indices, but did not show the results to the end user.
+</dd>
+<dt><span class="test-group-2">Test (Random)</span></dt>
+<dd>This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered randomly.
+</dd>
+<dt><span class="test-group-3">Test (Recall)</span></dt>
+<dd>This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered according to recall – the volume of search results returned for each respective wiki.
+</dd>
+</dl>
+<p>The primary questions we wanted to answer are:</p>
 <ul>
-<li><p>Did users who saw additional (cross-wiki) results click on those results (including “More Results”)?</p></li>
-<li><p>Did the order of the wikis matter? That is, were users actually clicking on relevant results or just showed up at the top?</p></li>
+<li><p>Did users who saw the additional cross-wiki results engage with those results?</p></li>
+<li><p>Was the overall engagement with search results better or worse compared to the controls?</p></li>
 </ul>
-<p>Each wiki was shown as a box in a sidebar (see Figure 1)…</p>
+<p>On 9 February 2017 we deployed an A/B test on the desktop version of Catalan, Italian, Persian, and Polish Wikipedias to assess the efficacy of this feature. The test concluded on 22 February 2017, after a total 6592 search sessions have been anonymously tracked.</p>
 </div>
 <div id="methods" class="section level1">
 <h1>Methods</h1>
-<p>Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Aenean eu leo quam.</p>
+<p>Event logging was implemented in JavaScript according to the <a href="https://meta.wikimedia.org/w/index.php?title=Schema:TestSearchSatisfaction2&amp;direction=next&amp;oldid=15922352">TestSearchSatisfaction2 schema, revision 16270835</a>, data was stored in a MySQL database, and analyzed and reported using R.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">import<span class="op">::</span><span class="kw">from</span>(dplyr, group_by, ungroup, <span class="dt">keep_where =</span> filter, mutate, arrange, select, transmute, left_join, summarize, bind_rows, case_when, if_else, rename)
 <span class="kw">library</span>(ggplot2)</code></pre></div>
 <div id="data" class="section level2">
 <h2>Data</h2>
-<p>Pellentesque ornare sem lacinia quam venenatis vestibulum. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.</p>
+<p>Figure 2 shows the flow of Wikipeda visitors on Desktop. Approximately 5.7% of the unique desktop devices that visit the 270 Wikipedias are accounted by Catalan, Italian, Persian, and Polish Wikipedias. In general, desktop users are randomly selected for anonymous tracking at a rate of 1 in 200, but for these wikis we changed the sampling rate to 1 in 200 for Catalan and Persian, and 1 in 50 for Italian and Polish. After a user was randomly selected into event logging, they had a 50% chance to be selected for the A/B test. Users who made it into the test were then randomly assigned to one of the three groups described above: <span class="test-group-1">Control</span>, <span class="test-group-2">Test (Random)</span>, and <span class="test-group-3">Test (Recall)</span>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">experiment_nodes &lt;-<span class="st"> </span><span class="kw">c</span>(
   <span class="st">&quot;Wikipedia visitors on Desktop&quot;</span>,
   <span class="st">&quot;Italian (2.85%)&quot;</span>, <span class="st">&quot;Persian (0.61%)&quot;</span>, <span class="st">&quot;Catalan (0.23%)&quot;</span>, <span class="st">&quot;Polish (2.06%)&quot;</span>, <span class="st">&quot;Other Languages (94.3%)&quot;</span>,
@@ -390,21 +401,8 @@ x &lt;-<span class="st"> </span><span class="kw">plot</span>(visitor_flow, <span
 <img src="index_files/figure-html/user_flow-1.png" alt="Figure 2: Flow of Wikipedia visitors into the A/B test." />
 <p class="caption"><strong>Figure 2</strong>: Flow of Wikipedia visitors into the A/B test.</p>
 </div>
-<p>Once a visitor has been enrolled into the A/B test, there are randomly assigned to one of the following groups:</p>
-<dl>
-<dt><span class="test-group-1">Control</span></dt>
-<dd>This group received the baseline user experience, which only includes the search results from the wiki they are on. To make their experience comparable to the test groups with respect to latency, we performed the search across the additional indices, but did not show the results to the end user.
-</dd>
-<dt><span class="test-group-2">Test (Random)</span></dt>
-<dd>This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered randomly.
-</dd>
-<dt><span class="test-group-3">Test (Recall)</span></dt>
-<dd>This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered according to recall – the volume of search results returned for each respective wiki.
-</dd>
-</dl>
-<p>Nullam quis risus eget urna mollis ornare vel eu leo. Vestibulum id ligula porta felis euismod semper. Maecenas sed diam eget risus varius blandit sit amet non magna. Donec ullamcorper nulla non metus auctor fringilla. Aenean lacinia bibendum nulla sed consectetur. Nullam quis risus eget urna mollis ornare vel eu leo. Cras mattis consectetur purus sit amet fermentum.</p>
-<p>In Figure 2…</p>
 <p>We would like to note that our event logging does not support cross-wiki tracking, so after the user leaves the search results page, we cannot learn if they have performed subsequent searches, how and how long the user engaged with the visited result’s page.</p>
+<p>See Phabricator ticket <a href="https://phabricator.wikimedia.org/T149806">T149806</a> and Gerrit change <a href="https://gerrit.wikimedia.org/r/#/c/336896/">336896</a> for full details of the implementation.</p>
 </div>
 <div id="analysis" class="section level2">
 <h2>Analysis</h2>
@@ -415,174 +413,343 @@ x &lt;-<span class="st"> </span><span class="kw">plot</span>(visitor_flow, <span
 <h1>Results</h1>
 <p>Donec sed odio dui. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">load</span>(<span class="kw">path</span>(<span class="st">&quot;data/T156300.RData&quot;</span>)) <span class="co"># loads &#39;searches&#39; and &#39;indices&#39;</span></code></pre></div>
-<p class="caption">
-<strong>Table 1</strong>: Number of search sessions used for analysis by wiki and group.
-</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">searches <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(<span class="dt">Wiki =</span> wiki, group) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">sessions =</span> <span class="kw">length</span>(<span class="kw">unique</span>(session_id))) <span class="op">%&gt;%</span>
 <span class="st">  </span>tidyr<span class="op">::</span><span class="kw">spread</span>(group, sessions) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">fable</span>(summary_stats_cap)</code></pre></div>
-<table>
+<span class="st">  </span><span class="kw">fable</span>(<span class="kw">format_caption</span>(table_caps, <span class="st">&quot;sessions_enrolled&quot;</span>))</code></pre></div>
+<?xml version="1.0" encoding="UTF-8"?>
+<table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
+<caption>
+<strong>Table 1</strong>: Number of search sessions used for analysis by wiki and group.
+</caption>
 <thead>
-<tr class="header">
-<th align="left">Wiki</th>
-<th align="right">Control</th>
-<th align="right">Test (Random)</th>
-<th align="right">Test (Recall)</th>
+<tr>
+<th style="text-align:left;">
+Wiki
+</th>
+<th style="text-align:right;">
+Control
+</th>
+<th style="text-align:right;">
+Test (Random)
+</th>
+<th style="text-align:right;">
+Test (Recall)
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Catalan Wikipedia</td>
-<td align="right">460</td>
-<td align="right">413</td>
-<td align="right">414</td>
+<tr>
+<td style="text-align:left;">
+Catalan Wikipedia
+</td>
+<td style="text-align:right;">
+460
+</td>
+<td style="text-align:right;">
+413
+</td>
+<td style="text-align:right;">
+414
+</td>
 </tr>
-<tr class="even">
-<td align="left">Italian Wikipedia</td>
-<td align="right">664</td>
-<td align="right">664</td>
-<td align="right">710</td>
+<tr>
+<td style="text-align:left;">
+Italian Wikipedia
+</td>
+<td style="text-align:right;">
+664
+</td>
+<td style="text-align:right;">
+664
+</td>
+<td style="text-align:right;">
+710
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Persian Wikipedia</td>
-<td align="right">664</td>
-<td align="right">631</td>
-<td align="right">658</td>
+<tr>
+<td style="text-align:left;">
+Persian Wikipedia
+</td>
+<td style="text-align:right;">
+664
+</td>
+<td style="text-align:right;">
+631
+</td>
+<td style="text-align:right;">
+658
+</td>
 </tr>
-<tr class="even">
-<td align="left">Polish Wikipedia</td>
-<td align="right">454</td>
-<td align="right">456</td>
-<td align="right">432</td>
+<tr>
+<td style="text-align:left;">
+Polish Wikipedia
+</td>
+<td style="text-align:right;">
+454
+</td>
+<td style="text-align:right;">
+456
+</td>
+<td style="text-align:right;">
+432
+</td>
 </tr>
 </tbody>
 </table>
 <p>Aenean lacinia bibendum nulla sed consectetur. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam quis risus eget urna mollis ornare vel eu leo. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.</p>
 <p>In Table 1…</p>
-<p class="caption">
-<strong>Table 2</strong>: Number of click events by group.
-</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">searches <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">keep_where</span>(event <span class="op">!=</span><span class="st"> &quot;SERP&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(<span class="dt">Group =</span> group, event) <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">count</span>() <span class="op">%&gt;%</span>
 <span class="st">  </span>tidyr<span class="op">::</span><span class="kw">spread</span>(event, n, <span class="dt">fill =</span> <span class="dv">0</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">fable</span>(click_counts_cap)</code></pre></div>
-<table>
+<span class="st">  </span><span class="kw">fable</span>(<span class="kw">format_caption</span>(table_caps, <span class="st">&quot;click_counts&quot;</span>))</code></pre></div>
+<?xml version="1.0" encoding="UTF-8"?>
+<table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
+<caption>
+<strong>Table 2</strong>: Number of click events by group.
+</caption>
 <thead>
-<tr class="header">
-<th align="left">Group</th>
-<th align="right">same-wiki click</th>
-<th align="right">sister-project click</th>
+<tr>
+<th style="text-align:left;">
+Group
+</th>
+<th style="text-align:right;">
+same-wiki click
+</th>
+<th style="text-align:right;">
+sister-project click
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">Control</td>
-<td align="right">1321</td>
-<td align="right">0</td>
+<tr>
+<td style="text-align:left;">
+Control
+</td>
+<td style="text-align:right;">
+1321
+</td>
+<td style="text-align:right;">
+0
+</td>
 </tr>
-<tr class="even">
-<td align="left">Test (Random)</td>
-<td align="right">1260</td>
-<td align="right">38</td>
+<tr>
+<td style="text-align:left;">
+Test (Random)
+</td>
+<td style="text-align:right;">
+1260
+</td>
+<td style="text-align:right;">
+38
+</td>
 </tr>
-<tr class="odd">
-<td align="left">Test (Recall)</td>
-<td align="right">1274</td>
-<td align="right">42</td>
+<tr>
+<td style="text-align:left;">
+Test (Recall)
+</td>
+<td style="text-align:right;">
+1274
+</td>
+<td style="text-align:right;">
+42
+</td>
 </tr>
 </tbody>
 </table>
 <p>In Table 2…</p>
-<p class="caption">
+<?xml version="1.0" encoding="UTF-8"?>
+<table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
+<caption>
 <strong>Table 3</strong>: A sample of some visitors’ interaction with the cross-wiki search results after they were enrolled into the test groups.
-</p>
-<table>
-<colgroup>
-<col width="5%" />
-<col width="10%" />
-<col width="7%" />
-<col width="20%" />
-<col width="6%" />
-<col width="19%" />
-<col width="15%" />
-<col width="13%" />
-</colgroup>
+</caption>
 <thead>
-<tr class="header">
-<th align="left">User</th>
-<th align="left">Wikipedia</th>
-<th align="left">Group</th>
-<th align="left">Timestamp</th>
-<th align="left">Click</th>
-<th align="left">Position of result</th>
-<th align="left">Sister Project</th>
-<th align="left">Destination</th>
+<tr>
+<th style="text-align:left;">
+User
+</th>
+<th style="text-align:left;">
+Wikipedia
+</th>
+<th style="text-align:left;">
+Group
+</th>
+<th style="text-align:left;">
+Timestamp
+</th>
+<th style="text-align:left;">
+Click
+</th>
+<th style="text-align:left;">
+Position of result
+</th>
+<th style="text-align:left;">
+Sister Project
+</th>
+<th style="text-align:left;">
+Destination
+</th>
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td align="left">A</td>
-<td align="left">Persian</td>
-<td align="left">Recall</td>
-<td align="left">2017-02-15 18:16:20</td>
-<td align="left">1st</td>
-<td align="left">2nd</td>
-<td align="left">Wikiquote</td>
-<td align="left">Article</td>
+<tr>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+Persian
+</td>
+<td style="text-align:left;">
+Recall
+</td>
+<td style="text-align:left;">
+2017-02-15 18:16:20
+</td>
+<td style="text-align:left;">
+1st
+</td>
+<td style="text-align:left;">
+2nd
+</td>
+<td style="text-align:left;">
+Wikiquote
+</td>
+<td style="text-align:left;">
+Article
+</td>
 </tr>
-<tr class="even">
-<td align="left">A</td>
-<td align="left">Persian</td>
-<td align="left">Recall</td>
-<td align="left">2017-02-15 18:17:03</td>
-<td align="left">2nd</td>
-<td align="left">2nd</td>
-<td align="left">Wikiquote</td>
-<td align="left">More Results</td>
+<tr>
+<td style="text-align:left;">
+A
+</td>
+<td style="text-align:left;">
+Persian
+</td>
+<td style="text-align:left;">
+Recall
+</td>
+<td style="text-align:left;">
+2017-02-15 18:17:03
+</td>
+<td style="text-align:left;">
+2nd
+</td>
+<td style="text-align:left;">
+2nd
+</td>
+<td style="text-align:left;">
+Wikiquote
+</td>
+<td style="text-align:left;">
+More Results
+</td>
 </tr>
-<tr class="odd">
-<td align="left">B</td>
-<td align="left">Italian</td>
-<td align="left">Recall</td>
-<td align="left">2017-02-17 09:04:18</td>
-<td align="left">1st</td>
-<td align="left">2nd</td>
-<td align="left">Wikisource</td>
-<td align="left">Article</td>
+<tr>
+<td style="text-align:left;">
+B
+</td>
+<td style="text-align:left;">
+Italian
+</td>
+<td style="text-align:left;">
+Recall
+</td>
+<td style="text-align:left;">
+2017-02-17 09:04:18
+</td>
+<td style="text-align:left;">
+1st
+</td>
+<td style="text-align:left;">
+2nd
+</td>
+<td style="text-align:left;">
+Wikisource
+</td>
+<td style="text-align:left;">
+Article
+</td>
 </tr>
-<tr class="even">
-<td align="left">B</td>
-<td align="left">Italian</td>
-<td align="left">Recall</td>
-<td align="left">2017-02-17 09:04:32</td>
-<td align="left">2nd</td>
-<td align="left">2nd</td>
-<td align="left">Wikisource</td>
-<td align="left">More Results</td>
+<tr>
+<td style="text-align:left;">
+B
+</td>
+<td style="text-align:left;">
+Italian
+</td>
+<td style="text-align:left;">
+Recall
+</td>
+<td style="text-align:left;">
+2017-02-17 09:04:32
+</td>
+<td style="text-align:left;">
+2nd
+</td>
+<td style="text-align:left;">
+2nd
+</td>
+<td style="text-align:left;">
+Wikisource
+</td>
+<td style="text-align:left;">
+More Results
+</td>
 </tr>
-<tr class="odd">
-<td align="left">C</td>
-<td align="left">Italian</td>
-<td align="left">Random</td>
-<td align="left">2017-02-19 17:43:38</td>
-<td align="left">1st</td>
-<td align="left">2nd</td>
-<td align="left">Wikiquote</td>
-<td align="left">More Results</td>
+<tr>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+Italian
+</td>
+<td style="text-align:left;">
+Random
+</td>
+<td style="text-align:left;">
+2017-02-19 17:43:38
+</td>
+<td style="text-align:left;">
+1st
+</td>
+<td style="text-align:left;">
+2nd
+</td>
+<td style="text-align:left;">
+Wikiquote
+</td>
+<td style="text-align:left;">
+More Results
+</td>
 </tr>
-<tr class="even">
-<td align="left">C</td>
-<td align="left">Italian</td>
-<td align="left">Random</td>
-<td align="left">2017-02-19 17:45:50</td>
-<td align="left">2nd</td>
-<td align="left">2nd</td>
-<td align="left">Wikisource</td>
-<td align="left">More Results</td>
+<tr>
+<td style="text-align:left;">
+C
+</td>
+<td style="text-align:left;">
+Italian
+</td>
+<td style="text-align:left;">
+Random
+</td>
+<td style="text-align:left;">
+2017-02-19 17:45:50
+</td>
+<td style="text-align:left;">
+2nd
+</td>
+<td style="text-align:left;">
+2nd
+</td>
+<td style="text-align:left;">
+Wikisource
+</td>
+<td style="text-align:left;">
+More Results
+</td>
 </tr>
 </tbody>
 </table>
@@ -679,7 +846,7 @@ x &lt;-<span class="st"> </span><span class="kw">plot</span>(visitor_flow, <span
          <span class="st">`</span><span class="dt">Sister Project</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">sister project</span><span class="st">`</span>, <span class="dt">Destination =</span> destination) <span class="op">%&gt;%</span>
 <span class="st">  </span>ungroup</code></pre></div>
 <p class="caption">
-<strong>Table 4</strong>: Clicks on cross-wiki search results
+<strong>Table 4</strong>: Clicks on cross-wiki search results.
 </p>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">

@@ -99,3 +99,7 @@ indices <- readr::read_tsv("data/T156300-indices.tsv.gz", col_types = readr::col
 ```{r}
 save(list = c("searches", "indices"), file = "data/T156300.RData")
 ```
+
+```{r}
+length(unique(searches$session_id))
+```

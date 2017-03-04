@@ -13,8 +13,15 @@ author:
   name: "Mikhail Popov"
 - affiliation: "Product Manager (Analysis, Search Frontend), Wikimedia Foundation"
   name: "Deb Tankersley"
-abstract: "Donec ullamcorper nulla non metus auctor fringilla. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas sed diam eget risus varius blandit sit amet non magna. Maecenas sed diam eget risus varius blandit sit amet non magna. Sed posuere consectetur est at lobortis. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."
+abstract: "Some people seemed to click on the additional cross-wiki results that were shown to them."
 output:
+  pdf_document:
+    citation_package: natbib
+    fig_height: 6
+    fig_width: 10
+    keep_tex: yes
+    latex_engine: xelatex
+    template: svm-latex-ms.tex
   html_document:
     includes:
       after_body: suffix.html
@@ -33,14 +40,6 @@ output:
     toc_depth: 4
     toc_float:
       collapsed: no
-    df_print: paged
-  pdf_document:
-    citation_package: natbib
-    fig_height: 6
-    fig_width: 10
-    keep_tex: yes
-    latex_engine: xelatex
-    template: svm-latex-ms.tex
 bibliography: bibliography.bib
 link-citations: yes
 nocite: |
@@ -66,14 +65,21 @@ $(function() {
 ```{r setup, include=FALSE}
 set.seed(0)
 library(magrittr)
+library(knitr)
+library(kableExtra)
 is_html <- function() {
-  if (length(knitr::opts_knit$get("rmarkdown.pandoc.to")) > 0) {
-    return(knitr::opts_knit$get("rmarkdown.pandoc.to") == "html")
+  if (length(opts_knit$get("rmarkdown.pandoc.to")) > 0) {
+    return(opts_knit$get("rmarkdown.pandoc.to") == "html")
   } else {
     return(FALSE)
   }
 }
-knitr::opts_chunk$set(
+if (is_html()) {
+  options(knitr.table.format = "html")
+} else {
+  options(knitr.table.format = "latex")
+}
+opts_chunk$set(
   echo = is_html(),
   warning = FALSE,
   message = FALSE,
@@ -87,8 +93,15 @@ path <- function(x) {
     return(x)
   }
 }
-fable <- function(x, caption) {
-  return(knitr::kable(x, format = ifelse(is_html(), "markdown", "latex"), caption = caption))
+fable <- function(x, caption = NULL, ...) {
+  if (is_html()) {
+    return({
+      kable(x, caption = caption, booktabs = TRUE) %>%
+      kable_styling(bootstrap_options = c("striped", "hover"), ...)
+    })
+  } else {
+    return(kable(x, caption = caption))
+  }
 }
 ```
 ```{r captions, include=FALSE}
@@ -118,7 +131,7 @@ table_caps(name = "sample_interactions", caption = "A sample of some visitors' i
 figure_caps(name = "zero_results_rate", caption = "Zero results rate of experimental groups across wikis by type of results.")
 figure_caps(name = "counts", caption = "Average number of searches, average number of search engine result pages (SERPs), total searches, total SERPs, and total sessions by group and wiki.")
 figure_caps(name = "clickthrough_rates", caption = "Clickthrough rates of experimental groups, split by wiki. In the control group, only searches that yielded some same-wiki results were considered. In the two test groups, only searches that yielded some sister-wiki results were considered.")
-table_caps(name = "sister_clicks", caption = ifelse(is_html(), "Clicks on cross-wiki search results", "Sample of 16 events (2 from each wiki-group combination) that are clicks on cross-wiki search results."))
+table_caps(name = "sister_clicks", caption = ifelse(is_html(), "Clicks on cross-wiki search results.", "Sample of 16 events (2 from each wiki-group combination) that are clicks on cross-wiki search results."))
 ```
 ```{r links, echo=FALSE, results='asis'}
 if (is_html()) {
@@ -130,30 +143,54 @@ if (is_html()) {
 
 # Introduction
 
-Donec id elit non mi porta gravida at eget metus. Nullam quis risus eget urna mollis ornare vel eu leo. Sed posuere consectetur est at lobortis. Maecenas sed diam eget risus varius blandit sit amet non magna.
+The Discovery department's mission is to make the wealth of knowledge and content in the Wikimedia projects (such as Wikipedia) easily discoverable. The Search team is responsible for maintaining and enhancing the search features and APIs for MediaWiki, such as language detection (i.e. if a French Wikipedia visitor searches in German, then in addition to results from French Wikipedia, they would also get results from German Wikipedia). Its current goal is to add cross-wiki searching -- that is, providing search results from other ("sister") Wikimedia projects ("*wikis*") within the same language. For example, if a work (e.g. a book or poem) on French Wikisource contained that German phrase, that user would be shown results from French Wikisource in addition to any results from French and German Wikipedias.
 
 ```{r example_caption, include=FALSE}
 example_cap <- format_caption(figure_caps, "example")
 example_png <- png::readPNG("../example.png", info = TRUE)
 example_dim <- attr(example_png, "info")$dim
 ```
-```{r example_figure, fig.width=0.5*example_dim[1]/72, fig.height=0.5*example_dim[2]/72, fig.cap=example_cap, fig.align='center', fig.ext='png', echo=FALSE}
+```{r example_figure, fig.width=ifelse(is_html(), 0.25, 1)*example_dim[1]/72, fig.height=ifelse(is_html(), 0.25, 1)*example_dim[2]/72, fig.cap=example_cap, fig.align='center', fig.ext='png', echo=FALSE}
 grid::grid.raster(example_png, interpolate = TRUE)
 ```
 
-Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Aenean lacinia bibendum nulla sed consectetur.
+For the users who received the experimental user experience (UX), each additional wiki's top result was shown as a box in a sidebar with a link to view more results (see `r figure_caps("example", display = "cite")`). There were two groups of users who received the experimental UX and one control group that did not:
 
-The two primary questions we wanted to answer are:
+```{r "test group description", results='asis', echo=FALSE}
+descriptions <- list(
+  `Control` = "This group received the baseline user experience, which only includes the search results from the wiki they are on. To make their experience comparable to the test groups with respect to latency, we performed the search across the additional indices, but did not show the results to the end user.",
+  `Test (Random)` = "This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered randomly.",
+  `Test (Recall)` = "This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered according to recall -- the volume of search results returned for each respective wiki."
+)
+if (is_html()) {
+  cat("<span class = \"test-group-1\">Control</span>
+:   ", descriptions$`Control` , "
 
-- Did users who saw additional (cross-wiki) results click on those results (including "More Results")?
+<span class = \"test-group-2\">Test (Random)</span>
+:   ", descriptions$`Test (Random)` , "
 
-- Did the order of the wikis matter? That is, were users actually clicking on relevant results or just showed up at the top?
+<span class = \"test-group-3\">Test (Recall)</span>
+:   ", descriptions$`Test (Recall)`)
+} else {
+  cat("\\begin{itemize}
+  \\item{\\textbf{Control}: ", descriptions$`Control` , "}
+  \\item{\\textbf{Test (Random)}: ", descriptions$`Test (Random)` , "}
+  \\item{\\textbf{Test (Recall)}: ", descriptions$`Test (Recall)` , "}
+\\end{itemize}")
+}
+```
 
-Each wiki was shown as a box in a sidebar (see `r figure_caps("example", display = "cite")`)...
+The primary questions we wanted to answer are:
+
+- Did users who saw the additional cross-wiki results engage with those results?
+
+- Was the overall engagement with search results better or worse compared to the controls?
+
+On 9 February 2017 we deployed an A/B test on the desktop version of Catalan, Italian, Persian, and Polish Wikipedias to assess the efficacy of this feature. The test concluded on 22 February 2017, after a total 6592 search sessions have been anonymously tracked.
 
 # Methods
 
-Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor. Aenean eu leo quam.
+Event logging was implemented in JavaScript according to the [TestSearchSatisfaction2 schema, revision 16270835](https://meta.wikimedia.org/w/index.php?title=Schema:TestSearchSatisfaction2&direction=next&oldid=15922352), data was stored in a MySQL database, and analyzed and reported using R.
 
 ```{r pkgs}
 import::from(dplyr, group_by, ungroup, keep_where = filter, mutate, arrange, select, transmute, left_join, summarize, bind_rows, case_when, if_else, rename)
@@ -162,7 +199,7 @@ library(ggplot2)
 
 ## Data
 
-Pellentesque ornare sem lacinia quam venenatis vestibulum. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
+`r figure_caps("user_flow", display = "cite")` shows the flow of Wikipeda visitors on Desktop. Approximately 5.7% of the unique desktop devices that visit the 270 Wikipedias are accounted by Catalan, Italian, Persian, and Polish Wikipedias. In general, desktop users are randomly selected for anonymous tracking at a rate of 1 in 200, but for these wikis we changed the sampling rate to 1 in 200 for Catalan and Persian, and 1 in 50 for Italian and Polish. After a user was randomly selected into event logging, they had a 50% chance to be selected for the A/B test. Users who made it into the test were then randomly assigned to one of the three groups described above: <span class="test-group-1">Control</span>, <span class="test-group-2">Test (Random)</span>, and <span class="test-group-3">Test (Recall)</span>.
 
 ```{r user_flow_caption, echo=FALSE}
 user_flow_cap <- format_caption(figure_caps, "user_flow")
@@ -211,37 +248,9 @@ visitor_flow <- riverplot::makeRiver(
 x <- plot(visitor_flow, node_margin = 1.5, default_style = ds, fix.pdf = TRUE)
 ```
 
-Once a visitor has been enrolled into the A/B test, there are randomly assigned to one of the following groups:
-
-```{r "test group description", results='asis', echo=FALSE}
-descriptions <- list(
-  `Control` = "This group received the baseline user experience, which only includes the search results from the wiki they are on. To make their experience comparable to the test groups with respect to latency, we performed the search across the additional indices, but did not show the results to the end user.",
-  `Test (Random)` = "This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered randomly.",
-  `Test (Recall)` = "This group received the experimental user experience, which includes search results from other wikis (if any were returned). The boxes holding the results (one box for each wiki) were ordered according to recall -- the volume of search results returned for each respective wiki."
-)
-if (is_html()) {
-  cat("<span class = \"test-group-1\">Control</span>
-:   ", descriptions$`Control` , "
-
-<span class = \"test-group-2\">Test (Random)</span>
-:   ", descriptions$`Test (Random)` , "
-
-<span class = \"test-group-3\">Test (Recall)</span>
-:   ", descriptions$`Test (Recall)`)
-} else {
-  cat("\\begin{itemize}
-  \\item{\\textbf{Control}: ", descriptions$`Control` , "}
-  \\item{\\textbf{Test (Random)}: ", descriptions$`Test (Random)` , "}
-  \\item{\\textbf{Test (Recall)}: ", descriptions$`Test (Recall)` , "}
-\\end{itemize}")
-}
-```
-
-Nullam quis risus eget urna mollis ornare vel eu leo. Vestibulum id ligula porta felis euismod semper. Maecenas sed diam eget risus varius blandit sit amet non magna. Donec ullamcorper nulla non metus auctor fringilla. Aenean lacinia bibendum nulla sed consectetur. Nullam quis risus eget urna mollis ornare vel eu leo. Cras mattis consectetur purus sit amet fermentum.
-
-In `r figure_caps("user_flow", display = "cite")`...
-
 We would like to note that our event logging does not support cross-wiki tracking, so after the user leaves the search results page, we cannot learn if they have performed subsequent searches, how and how long the user engaged with the visited result's page.
+
+See Phabricator ticket [T149806](https://phabricator.wikimedia.org/T149806) and Gerrit change [336896](https://gerrit.wikimedia.org/r/#/c/336896/) for full details of the implementation.
 
 ## Analysis
 
@@ -255,41 +264,29 @@ Donec sed odio dui. Maecenas faucibus mollis interdum. Vestibulum id ligula port
 load(path("data/T156300.RData")) # loads 'searches' and 'indices'
 ```
 
-```{r summary_stats_caption, results=ifelse(is_html(), 'asis', 'hide'), echo=FALSE}
-summary_stats_cap <- format_caption(table_caps, "sessions_enrolled")
-print_caption(summary_stats_cap)
-```
 ```{r summary_stats_table, results='asis'}
 searches %>%
   group_by(Wiki = wiki, group) %>%
   summarize(sessions = length(unique(session_id))) %>%
   tidyr::spread(group, sessions) %>%
-  fable(summary_stats_cap)
+  fable(format_caption(table_caps, "sessions_enrolled"))
 ```
 
 Aenean lacinia bibendum nulla sed consectetur. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam quis risus eget urna mollis ornare vel eu leo. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.
 
 In `r table_caps("sessions_enrolled", display = "cite")`...
 
-```{r click_counts_caption, results=ifelse(is_html(), 'asis', 'hide'), echo=FALSE}
-click_counts_cap <- format_caption(table_caps, "click_counts")
-print_caption(click_counts_cap)
-```
 ```{r click_counts_table, results='asis'}
 searches %>%
   keep_where(event != "SERP") %>%
   group_by(Group = group, event) %>%
   dplyr::count() %>%
   tidyr::spread(event, n, fill = 0) %>%
-  fable(click_counts_cap)
+  fable(format_caption(table_caps, "click_counts"))
 ```
 
 In `r table_caps("click_counts", display = "cite")`...
 
-```{r sample_interactions_caption, results=ifelse(is_html(), 'asis', 'hide'), echo=FALSE}
-sample_interactions_cap <- format_caption(table_caps, "sample_interactions")
-print_caption(sample_interactions_cap)
-```
 ```{r sample_interactions_table, echo=FALSE, results='asis'}
 searches %>%
   keep_where(session_id %in% c("ca7fc0600bde50a2", "0642e9f1a0e29e0e", "7de1d49a56ca86f2"),
@@ -309,7 +306,7 @@ searches %>%
          Click, `Position of result`,
          `Sister Project`, Destination = destination) %>%
   arrange(User, Timestamp) %>%
-  fable(sample_interactions_cap)
+  fable(format_caption(table_caps, "sample_interactions"))
 ```
 
 In `r table_caps("sample_interactions", display = "cite")`, we see the following three interactions:
@@ -508,7 +505,8 @@ if (is_html()) {
     mutate(
       Click = vapply(Click, toOrdinal::toOrdinal, ""),
       `Position of clicked result` = vapply(`Position of clicked result`, toOrdinal::toOrdinal, "")
-    )
+    ) %>%
+    rmarkdown:::print.paged_df()
 } else {
   sister_clicks %>%
     mutate(
