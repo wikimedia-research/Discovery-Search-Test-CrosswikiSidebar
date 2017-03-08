@@ -10,7 +10,7 @@
 
 
 
-<meta name="date" content="2017-03-03" />
+<meta name="date" content="2017-03-07" />
 
 <title>A Test Of Cross-wiki Search</title>
 
@@ -25,8 +25,6 @@
 <script src="index_files/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="index_files/navigation-1.1/tabsets.js"></script>
 <script src="index_files/navigation-1.1/codefolding.js"></script>
-<link href="index_files/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
-<script src="index_files/pagedtable-1.1/js/pagedtable.js"></script>
 
 
 <style type="text/css">code{white-space: pre;}</style>
@@ -294,10 +292,10 @@ Product Manager (Search Backend), Wikimedia Foundation<br><h4 class="author"><em
 <address class="author_afil">
 Data Analyst, Wikimedia Foundation<br><h4 class="author"><em>Deb Tankersley</em></h4>
 <address class="author_afil">
-Product Manager (Analysis, Search Frontend), Wikimedia Foundation<br><h4 class="date"><em>03 March 2017</em></h4>
+Product Manager (Analysis, Search Frontend), Wikimedia Foundation<br><h4 class="date"><em>07 March 2017</em></h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
-Some people seemed to click on the additional cross-wiki results that were shown to them.
+Wikimedia Engineering’s Discovery’s Search team ran an A/B test from 9 Feb 2017 to 22 Feb 2017 to assess the effectiveness of performing cross-wiki searches and showing Catalan, Italian, Persian, and Polish Wikipedias’ users results from sister projects such as Wikisource and Wikiquote. We found that while the overall engagement with the search results was higher for the two test groups compared to the control group, there was no sufficient evidence to definitively say that the additional search results increased user engagement. We suspect that a critical UX design issue – links shown in black, rather than standard blue – and the particular languages this test was deployed on (resulting in a higher zero results rate than seen across other languages) had a negative effect on the results, and recommend performing a follow-up test.
 </div>
 
 </div>
@@ -322,14 +320,15 @@ $(function() {
 </p>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
-<p>The Discovery department’s mission is to make the wealth of knowledge and content in the Wikimedia projects (such as Wikipedia) easily discoverable. The Search team is responsible for maintaining and enhancing the search features and APIs for MediaWiki, such as language detection (i.e. if a French Wikipedia visitor searches in German, then in addition to results from French Wikipedia, they would also get results from German Wikipedia). Its current goal is to add cross-wiki searching – that is, providing search results from other (“sister”) Wikimedia projects (“<em>wikis</em>”) within the same language. For example, if a work (e.g. a book or poem) on French Wikisource contained that German phrase, that user would be shown results from French Wikisource in addition to any results from French and German Wikipedias.</p>
+<p>Within the <a href="https://wikimediafoundation.org/wiki/Home">Wikimedia Foundation</a>’s <a href="https://www.mediawiki.org/wiki/Wikimedia_Engineering">Engineering group</a>, the <a href="https://www.mediawiki.org/wiki/Wikimedia_Discovery">Discovery department</a>’s mission is to make the wealth of knowledge and content in the <a href="https://wikimediafoundation.org/wiki/Our_projects">Wikimedia projects</a> (such as <a href="https://www.wikipedia.org/">Wikipedia</a>) easily discover-able. The Search team is responsible for maintaining and enhancing the search features and APIs for MediaWiki, such as language detection (i.e. if a French Wikipedia visitor searches in German, then in addition to results from French Wikipedia, they would also get results from German Wikipedia).</p>
+<p>Specifically, the <a href="https://www.mediawiki.org/wiki/Wikimedia_Discovery/Search">Search team</a>’s current goal is to add cross-wiki searching – that is, providing search results from other (also referred to as “sister”) Wikimedia projects (“<em>wikis</em>”) within the same language. For example, if a work (e.g. a book or poem) on French Wikisource contained that German phrase, that user would be shown results from French Wikisource in addition to any results from French and German Wikipedias.</p>
 <div class="figure" style="text-align: center">
 <img src="index_files/figure-html/example_figure-1.png" alt="**Figure 1**: Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering."  />
 <p class="caption">
 <strong>Figure 1</strong>: Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering.
 </p>
 </div>
-<p>For the users who received the experimental user experience (UX), each additional wiki’s top result was shown as a box in a sidebar with a link to view more results (see Figure 1). There were two groups of users who received the experimental UX and one control group that did not:</p>
+<p>For the users who received the experimental user experience (UX), each additional wiki’s top result was shown as a box in a sidebar with a link to view more results (see Figure 10). There were two groups of users who received the experimental UX and one control group that did not:</p>
 <dl>
 <dt><span class="test-group-1">Control</span></dt>
 <dd>This group received the baseline user experience, which only includes the search results from the wiki they are on. To make their experience comparable to the test groups with respect to latency, we performed the search across the additional indices, but did not show the results to the end user.
@@ -346,16 +345,16 @@ $(function() {
 <li><p>Did users who saw the additional cross-wiki results engage with those results?</p></li>
 <li><p>Was the overall engagement with search results better or worse compared to the controls?</p></li>
 </ul>
-<p>On 9 February 2017 we deployed an A/B test on the desktop version of Catalan, Italian, Persian, and Polish Wikipedias to assess the efficacy of this feature. The test concluded on 22 February 2017, after a total 6592 search sessions have been anonymously tracked.</p>
+<p>On 9 February 2017 we deployed an A/B test on the desktop version of Catalan, Italian, Persian, and Polish Wikipedias to assess the efficacy of this feature. The test concluded on 22 February 2017, after a total 6620 search sessions have been anonymously tracked.</p>
 </div>
 <div id="methods" class="section level1">
 <h1>Methods</h1>
-<p>Event logging was implemented in JavaScript according to the <a href="https://meta.wikimedia.org/w/index.php?title=Schema:TestSearchSatisfaction2&amp;direction=next&amp;oldid=15922352">TestSearchSatisfaction2 schema, revision 16270835</a>, data was stored in a MySQL database, and analyzed and reported using R.</p>
+<p>This test’s event logging (EL) was implemented in JavaScript according to the <a href="https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2">TestSearchSatisfaction2</a> (TSS2) schema, which is the one used by the Search team for its metrics on desktop, data was stored in a MySQL database, and analyzed and reported using R <span class="citation">[<a href="#ref-R-base">1</a>]</span>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">import<span class="op">::</span><span class="kw">from</span>(dplyr, group_by, ungroup, <span class="dt">keep_where =</span> filter, mutate, arrange, select, transmute, left_join, summarize, bind_rows, case_when, if_else, rename)
 <span class="kw">library</span>(ggplot2)</code></pre></div>
 <div id="data" class="section level2">
 <h2>Data</h2>
-<p>Figure 2 shows the flow of Wikipeda visitors on Desktop. Approximately 5.7% of the unique desktop devices that visit the 270 Wikipedias are accounted by Catalan, Italian, Persian, and Polish Wikipedias. In general, desktop users are randomly selected for anonymous tracking at a rate of 1 in 200, but for these wikis we changed the sampling rate to 1 in 200 for Catalan and Persian, and 1 in 50 for Italian and Polish. After a user was randomly selected into event logging, they had a 50% chance to be selected for the A/B test. Users who made it into the test were then randomly assigned to one of the three groups described above: <span class="test-group-1">Control</span>, <span class="test-group-2">Test (Random)</span>, and <span class="test-group-3">Test (Recall)</span>.</p>
+<p>The data was collected according to the <a href="https://meta.wikimedia.org/w/index.php?title=Schema:TestSearchSatisfaction2&amp;direction=next&amp;oldid=15922352">TSS2 schema, revision 16270835</a>. Figure 11 shows the flow of Wikipeda visitors on Desktop. Approximately 5.7% of the unique desktop devices that visit the 270 Wikipedias are accounted by Catalan, Italian, Persian, and Polish Wikipedias. In general, desktop users are randomly selected for anonymous tracking at a rate of 1 in 200, but for these wikis we changed the sampling rate to 1 in 200 for Catalan and Persian, and 1 in 50 for Italian and Polish. After a user was randomly selected into event logging, they had a 50% chance to be selected for the A/B test. Users who made it into the test were then randomly assigned to one of the three groups described above: <span class="test-group-1">Control</span>, <span class="test-group-2">Test (Random)</span>, and <span class="test-group-3">Test (Recall)</span>.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">experiment_nodes &lt;-<span class="st"> </span><span class="kw">c</span>(
   <span class="st">&quot;Wikipedia visitors on Desktop&quot;</span>,
   <span class="st">&quot;Italian (2.85%)&quot;</span>, <span class="st">&quot;Persian (0.61%)&quot;</span>, <span class="st">&quot;Catalan (0.23%)&quot;</span>, <span class="st">&quot;Polish (2.06%)&quot;</span>, <span class="st">&quot;Other Languages (94.3%)&quot;</span>,
@@ -402,31 +401,30 @@ x &lt;-<span class="st"> </span><span class="kw">plot</span>(visitor_flow, <span
 <p class="caption"><strong>Figure 2</strong>: Flow of Wikipedia visitors into the A/B test.</p>
 </div>
 <p>We would like to note that our event logging does not support cross-wiki tracking, so after the user leaves the search results page, we cannot learn if they have performed subsequent searches, how and how long the user engaged with the visited result’s page.</p>
-<p>See Phabricator ticket <a href="https://phabricator.wikimedia.org/T149806">T149806</a> and Gerrit change <a href="https://gerrit.wikimedia.org/r/#/c/336896/">336896</a> for full details of the implementation.</p>
+<p>See Phabricator ticket <a href="https://phabricator.wikimedia.org/T149806">T149806</a> and Gerrit changes <a href="https://gerrit.wikimedia.org/r/#/c/334314/">334314</a>, <a href="https://gerrit.wikimedia.org/r/#/c/313318/">313318</a>, <a href="https://gerrit.wikimedia.org/r/#/c/332991/">332991</a>, <a href="https://gerrit.wikimedia.org/r/#/c/334685/">334685</a>, and <a href="https://gerrit.wikimedia.org/r/#/c/336896/">336896</a> for full details of the implementation on both back-end and front-end.</p>
 </div>
 <div id="analysis" class="section level2">
 <h2>Analysis</h2>
-<p>Cras justo odio, dapibus ac facilisis in, egestas eget quam. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam porta sem malesuada magna mollis euismod. Donec ullamcorper nulla non metus auctor fringilla.</p>
+<p>We employed the <em>binom</em> <span class="citation">[<a href="#ref-R-binom">2</a>]</span> and internally-developed <em>BCDA</em> <span class="citation">[<a href="#ref-R-BCDA">3</a>]</span> packages for Bayesian statistical analysis and confidence intervals in Figures 12, 13, 14, and 15.</p>
 </div>
 </div>
 <div id="results" class="section level1">
 <h1>Results</h1>
-<p>Donec sed odio dui. Maecenas faucibus mollis interdum. Vestibulum id ligula porta felis euismod semper. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">load</span>(<span class="kw">path</span>(<span class="st">&quot;data/T156300.RData&quot;</span>)) <span class="co"># loads &#39;searches&#39; and &#39;indices&#39;</span></code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">searches <span class="op">%&gt;%</span>
+<p>After the test has concluded on 22 February 2017, we processed the collected data and filtered out duplicated events, extraneous search engine result pages (SERPs), and kept only the searches for which we had both event logging (EL) data and logs of searches (Cirrus requests). This left us with 6620 search sessions (see Table 1) with the full breakdown by wiki and group. Table 2 breaks down the counts of clicks on same-wiki results (e.g. a Catalan Wikipedia visitor clicking on a Catalan Wikipedia article) and clicks on sister-projects results (e.g. an Italian Wikipedia visitor clicking on an Italian Wikinews article).</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">session_counts &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(<span class="dt">Wiki =</span> wiki, group) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">sessions =</span> <span class="kw">length</span>(<span class="kw">unique</span>(session_id))) <span class="op">%&gt;%</span>
-<span class="st">  </span>tidyr<span class="op">::</span><span class="kw">spread</span>(group, sessions) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">fable</span>(<span class="kw">format_caption</span>(table_caps, <span class="st">&quot;sessions_enrolled&quot;</span>))</code></pre></div>
+<span class="st">  </span><span class="kw">xtabs</span>(sessions <span class="op">~</span><span class="st"> </span>Wiki <span class="op">+</span><span class="st"> </span>group, <span class="dt">data =</span> .) <span class="op">%&gt;%</span>
+<span class="st">  </span>addmargins</code></pre></div>
 <?xml version="1.0" encoding="UTF-8"?>
 <table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
 <caption>
-<strong>Table 1</strong>: Number of search sessions used for analysis by wiki and group.
+<strong>Table 1</strong>: Number of search sessions used for analysis by wiki and group. Each search session may have several individual searches.
 </caption>
 <thead>
 <tr>
 <th style="text-align:left;">
-Wiki
 </th>
 <th style="text-align:right;">
 Control
@@ -436,6 +434,9 @@ Test (Random)
 </th>
 <th style="text-align:right;">
 Test (Recall)
+</th>
+<th style="text-align:right;">
+All 3 groups
 </th>
 </tr>
 </thead>
@@ -453,6 +454,9 @@ Catalan Wikipedia
 <td style="text-align:right;">
 414
 </td>
+<td style="text-align:right;">
+1287
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -466,6 +470,9 @@ Italian Wikipedia
 </td>
 <td style="text-align:right;">
 710
+</td>
+<td style="text-align:right;">
+2038
 </td>
 </tr>
 <tr>
@@ -481,6 +488,9 @@ Persian Wikipedia
 <td style="text-align:right;">
 658
 </td>
+<td style="text-align:right;">
+1953
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -495,17 +505,35 @@ Polish Wikipedia
 <td style="text-align:right;">
 432
 </td>
+<td style="text-align:right;">
+1342
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+All 4 wikis
+</td>
+<td style="text-align:right;">
+2242
+</td>
+<td style="text-align:right;">
+2164
+</td>
+<td style="text-align:right;">
+2214
+</td>
+<td style="text-align:right;">
+6620
+</td>
 </tr>
 </tbody>
 </table>
-<p>Aenean lacinia bibendum nulla sed consectetur. Nullam quis risus eget urna mollis ornare vel eu leo. Nullam id dolor id nibh ultricies vehicula ut id elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam quis risus eget urna mollis ornare vel eu leo. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Aenean eu leo quam. Pellentesque ornare sem lacinia quam venenatis vestibulum.</p>
-<p>In Table 1…</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">searches <span class="op">%&gt;%</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">click_counts &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">keep_where</span>(event <span class="op">!=</span><span class="st"> &quot;SERP&quot;</span>) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(<span class="dt">Group =</span> group, event) <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">count</span>() <span class="op">%&gt;%</span>
-<span class="st">  </span>tidyr<span class="op">::</span><span class="kw">spread</span>(event, n, <span class="dt">fill =</span> <span class="dv">0</span>) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">fable</span>(<span class="kw">format_caption</span>(table_caps, <span class="st">&quot;click_counts&quot;</span>))</code></pre></div>
+<span class="st">  </span><span class="kw">xtabs</span>(n <span class="op">~</span><span class="st"> </span>Group <span class="op">+</span><span class="st"> </span>event, <span class="dt">data =</span> .) <span class="op">%&gt;%</span>
+<span class="st">  </span>addmargins</code></pre></div>
 <?xml version="1.0" encoding="UTF-8"?>
 <table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
 <caption>
@@ -514,13 +542,15 @@ Polish Wikipedia
 <thead>
 <tr>
 <th style="text-align:left;">
-Group
 </th>
 <th style="text-align:right;">
-same-wiki click
+Same-wiki clicks
 </th>
 <th style="text-align:right;">
-sister-project click
+Sister-project clicks
+</th>
+<th style="text-align:right;">
+Overall clicks
 </th>
 </tr>
 </thead>
@@ -535,6 +565,9 @@ Control
 <td style="text-align:right;">
 0
 </td>
+<td style="text-align:right;">
+1321
+</td>
 </tr>
 <tr>
 <td style="text-align:left;">
@@ -545,6 +578,9 @@ Test (Random)
 </td>
 <td style="text-align:right;">
 38
+</td>
+<td style="text-align:right;">
+1298
 </td>
 </tr>
 <tr>
@@ -557,10 +593,32 @@ Test (Recall)
 <td style="text-align:right;">
 42
 </td>
+<td style="text-align:right;">
+1316
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+All 3 groups
+</td>
+<td style="text-align:right;">
+3855
+</td>
+<td style="text-align:right;">
+80
+</td>
+<td style="text-align:right;">
+3935
+</td>
 </tr>
 </tbody>
 </table>
-<p>In Table 2…</p>
+<p>In Table 5, we observed the following three interactions:</p>
+<ul>
+<li><p>User <strong>A</strong> was a Persian Wikipedia visitor who got enrolled into the test and received their cross-wiki results ordered according to recall. The Wikiquote box was displayed first (below the Multimedia box). The user clicked on the specific result, then clicked to see more results from Wikiquote.</p></li>
+<li><p>User <strong>B</strong> was an Italian Wikipedia visitor who got enrolled into the test and received their cross-wiki results ordered according to recall. This user had a similar interaction, although Wikisource was the first box displayed (below the Multimedia box), and the switch to viewing more results (after the initial probe into the specific result) was quicker.</p></li>
+<li><p>User <strong>C</strong> was an Italian Wikipedia visitor who got enrolled into the test and received their cross-wiki results randomly ordered. The Wikiquote box was randomly displayed first (below the Multimedia box) and the user clicked to see more results. Perhaps unsatisfied with Wiktionary’s search results, the user clicked Back, but Wikisource was displayed first (below the Multimedia box) on this second load of the original search results.</p></li>
+</ul>
 <?xml version="1.0" encoding="UTF-8"?>
 <table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
 <caption>
@@ -584,7 +642,7 @@ Timestamp
 Click
 </th>
 <th style="text-align:left;">
-Position of result
+Position
 </th>
 <th style="text-align:left;">
 Sister Project
@@ -753,15 +811,9 @@ More Results
 </tr>
 </tbody>
 </table>
-<p>In Table 3, we see the following three interactions:</p>
-<ul>
-<li><p>User <strong>A</strong> was a Persian Wikipedia visitor who got enrolled into the test and received their cross-wiki results ordered according to recall. The Wikiquote box was displayed first (below the Multimedia box). The user clicked on the specific result, then clicked to see more results from Wikiquote.</p></li>
-<li><p>User <strong>B</strong> was an Italian Wikipedia visitor who got enrolled into the test and received their cross-wiki results ordered according to recall. This user had a similar interaction, although Wikisource was the first box displayed (below the Multimedia box), and the switch to viewing more results (after the initial probe into the specific result) was quicker.</p></li>
-<li><p>User <strong>C</strong> was an Italian Wikipedia visitor who got enrolled into the test and received their cross-wiki results randomly ordered. The Wikiquote box was randomly displayed first (below the Multimedia box) and the user clicked to see more results. Perhaps unsatisfied with Wikitionary’s search results, the user clicked Back, but Wikisource was displayed first (below the Multimedia box) on this second load of the original search results.</p></li>
-</ul>
 <div id="zero-results-rate-zrr" class="section level2">
 <h2>Zero Results Rate (ZRR)</h2>
-<p>The zero results rate (ZRR) – proportion of searches yielding zero results – is one of Discovery’s Search Team’s key performance indicators (KPIs), and we are always interested in lowering that number (but not at the expense of results’ relevance). While we were primarily interested in searchers’ engagement with the search result for this test, we included this section as a consistency check – that the zero results rate is lower when a cross-wiki search is performed.</p>
+<p>The zero results rate (ZRR) – proportion of searches yielding zero results – is one of Discovery’s Search Team’s key performance indicators (KPIs), and we are always interested in lowering that number (but not at the expense of results’ relevance). While we were primarily interested in searchers’ engagement with the search result for this test, we included this section as a consistency check – that the zero results rate is lower when a cross-wiki search is performed (see Figure 12).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">zrr &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(wiki, group, serp_id) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(
@@ -779,14 +831,20 @@ More Results
 <span class="st">  </span><span class="kw">group_by</span>(wiki, group, results) <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">do</span>(binom<span class="op">::</span><span class="kw">binom.bayes</span>(.<span class="op">$</span>zr_searches, .<span class="op">$</span>total_searches, <span class="dt">conf.level =</span> <span class="fl">0.95</span>))</code></pre></div>
 <div class="figure">
-<img src="index_files/figure-html/zrr_plot-1.png" alt="Figure 3: Zero results rate of experimental groups across wikis by type of results." />
-<p class="caption"><strong>Figure 3</strong>: Zero results rate of experimental groups across wikis by type of results.</p>
+<img src="index_files/figure-html/zrr_plot-1.png" alt="Figure 3: Proportion of searches yielding zero results broken up by group, wiki, and type of results (same-wiki only vs. including cross-wiki results)." />
+<p class="caption"><strong>Figure 3</strong>: Proportion of searches yielding zero results broken up by group, wiki, and type of results (same-wiki only vs. including cross-wiki results).</p>
 </div>
-<p>In Figure 3…</p>
+<div class="figure">
+<img src="index_files/figure-html/zrr_lang_plot-1.png" alt="Figure 4: The proportion of searches that yielded zero results was the lowest for Wikipedia and Wikisource, with the other projects having very high zero result rates." />
+<p class="caption"><strong>Figure 4</strong>: The proportion of searches that yielded zero results was the lowest for Wikipedia and Wikisource, with the other projects having very high zero result rates.</p>
+</div>
+<p>In Figure 4, we broke the ZRR from Figure 3 down by language and project and included a reference marker for each project’s overall ZRR (aggregated across all the languages the project is available in). Almost all of the projects are available (at the time of the test and at the time of writing this report) in Catalan, Italian, Persian, and Polish.</p>
+<p>Namely, the overall ZRR of projects like Wikinews and Wiktionary (both exist in Catalan, Italian, Persian, and Polish) appears to be much lower than the ZRR observed in this test.</p>
+<p>In fact, the ZRR in these four languages is much higher than the overall ZRR for every project. We suspect this is responsible for the low sister-project click counts seen in Table 2.</p>
 </div>
 <div id="engagement" class="section level2">
 <h2>Engagement</h2>
-<p>Curabitur blandit tempus porttitor. Donec id elit non mi porta gravida at eget metus. Maecenas sed diam eget risus varius blandit sit amet non magna.</p>
+<p>We used the clickthrough rate as an indicator of users’ engagement with search results and as a measure of the results’ relevance. That is, if we present users with more relevant results (such as those from Wikipedia’s sister projects), then we expect the clickthrough rate to be higher in the two test groups compared to that of controls. Figure 5 shows that various search activity measures did not vary too much from one group to another.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">counts &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(wiki, group, session_id) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">searches =</span> <span class="kw">length</span>(<span class="kw">unique</span>(serp_id)),
@@ -799,10 +857,9 @@ More Results
 <span class="st">  </span>ungroup <span class="op">%&gt;%</span>
 <span class="st">  </span>tidyr<span class="op">::</span><span class="kw">gather</span>(metric, value, <span class="op">-</span><span class="kw">c</span>(wiki, group))</code></pre></div>
 <div class="figure">
-<img src="index_files/figure-html/counts_plot-1.png" alt="Figure 4: Average number of searches, average number of search engine result pages (SERPs), total searches, total SERPs, and total sessions by group and wiki." />
-<p class="caption"><strong>Figure 4</strong>: Average number of searches, average number of search engine result pages (SERPs), total searches, total SERPs, and total sessions by group and wiki.</p>
+<img src="index_files/figure-html/counts_plot-1.png" alt="Figure 5: Average number of searches, average number of search engine result pages (SERPs), total searches, total SERPs, and total sessions by group and wiki. The groups did not appear to behave too differently. For example, the three groups had very similar average searches per user." />
+<p class="caption"><strong>Figure 5</strong>: Average number of searches, average number of search engine result pages (SERPs), total searches, total SERPs, and total sessions by group and wiki. The groups did not appear to behave too differently. For example, the three groups had very similar average searches per user.</p>
 </div>
-<p>In Figure 4…</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">searches_H1 &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">group_by</span>(serp_id) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw">keep_where</span>(
@@ -817,48 +874,191 @@ More Results
 <span class="st">  </span><span class="kw">group_by</span>(wiki, group) <span class="op">%&gt;%</span>
 <span class="st">  </span>dplyr<span class="op">::</span><span class="kw">do</span>(binom<span class="op">::</span><span class="kw">binom.bayes</span>(.<span class="op">$</span>clickthroughs, .<span class="op">$</span>searches, <span class="dt">conf.level =</span> <span class="fl">0.95</span>))</code></pre></div>
 <div class="figure">
-<img src="index_files/figure-html/hypothesis_1_plot-1.png" alt="Figure 5: Clickthrough rates of experimental groups, split by wiki. In the control group, only searches that yielded some same-wiki results were considered. In the two test groups, only searches that yielded some sister-wiki results were considered." />
-<p class="caption"><strong>Figure 5</strong>: Clickthrough rates of experimental groups, split by wiki. In the control group, only searches that yielded some same-wiki results were considered. In the two test groups, only searches that yielded some sister-wiki results were considered.</p>
+<img src="index_files/figure-html/hypothesis_1_plot-1.png" alt="Figure 6: Clickthrough rates of experimental groups, split by wiki. In the Control group, only searches that yielded some same-wiki results were considered. In the two test groups, only searches that yielded some sister-wiki results were considered." />
+<p class="caption"><strong>Figure 6</strong>: Clickthrough rates of experimental groups, split by wiki. In the <span class="test-group-1">Control</span> group, only searches that yielded some same-wiki results were considered. In the two test groups, only searches that yielded some sister-wiki results were considered.</p>
 </div>
-<p>Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
-<p>In Figure 5…</p>
-</div>
-<div id="cross-wiki-result-clicks" class="section level2">
-<h2>Cross-wiki Result Clicks</h2>
-<p>Vestibulum id ligula porta felis euismod semper. Curabitur blandit tempus porttitor. Nulla vitae elit libero, a pharetra augue. Donec ullamcorper nulla non metus auctor fringilla. Cras mattis consectetur purus sit amet fermentum. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sister_clicks &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">keep_where</span>(
-    group <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Test (Random)&quot;</span>, <span class="st">&quot;Test (Recall)&quot;</span>),
-    event <span class="op">==</span><span class="st"> &quot;sister-project click&quot;</span>,
-    <span class="st">`</span><span class="dt">cirrus log: some sister-wiki results</span><span class="st">`</span>
-  ) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">mutate</span>(
-    <span class="dt">destination =</span> <span class="kw">if_else</span>(destination <span class="op">==</span><span class="st"> &quot;Article&quot;</span> <span class="op">&amp;</span><span class="st"> `</span><span class="dt">sister project</span><span class="st">`</span> <span class="op">==</span><span class="st"> &quot;commons&quot;</span>, <span class="st">&quot;File&quot;</span>, destination),
-    <span class="st">`</span><span class="dt">sister project</span><span class="st">`</span> =<span class="st"> </span>stringi<span class="op">::</span><span class="kw">stri_trans_totitle</span>(<span class="st">`</span><span class="dt">sister project</span><span class="st">`</span>),
-    <span class="st">`</span><span class="dt">sister project</span><span class="st">`</span> =<span class="st"> </span><span class="kw">if_else</span>(<span class="st">`</span><span class="dt">sister project</span><span class="st">`</span> <span class="op">==</span><span class="st"> &quot;Commons&quot;</span>, <span class="st">&quot;Commons (or same)&quot;</span>, <span class="st">`</span><span class="dt">sister project</span><span class="st">`</span>)
-  ) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">arrange</span>(wiki, group, timestamp) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">group_by</span>(wiki, group, serp_id) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">mutate</span>(<span class="dt">Click =</span> <span class="kw">cumsum</span>(<span class="kw">rep</span>(<span class="dv">1</span>, <span class="kw">n</span>()))) <span class="op">%&gt;%</span>
-<span class="st">  </span><span class="kw">select</span>(<span class="dt">Wiki =</span> wiki, <span class="dt">Group =</span> group,
-         <span class="dt">Session =</span> session_id, <span class="dt">Search =</span> serp_id, <span class="dt">Timestamp =</span> timestamp,
-         Click, <span class="st">`</span><span class="dt">Position of clicked result</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">clicked-result position</span><span class="st">`</span>,
-         <span class="st">`</span><span class="dt">Sister Project</span><span class="st">`</span> =<span class="st"> `</span><span class="dt">sister project</span><span class="st">`</span>, <span class="dt">Destination =</span> destination) <span class="op">%&gt;%</span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bcda_H1a &lt;-<span class="st"> </span>searches_H1 <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">keep_where</span>(group <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Control&quot;</span>, <span class="st">&quot;Test (Random)&quot;</span>)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">arrange</span>(wiki, <span class="kw">desc</span>(group)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(wiki) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">do</span>(BCDA<span class="op">::</span><span class="kw">tidy</span>(BCDA<span class="op">::</span><span class="kw">beta_binom</span>(.<span class="op">$</span>x, .<span class="op">$</span>n), <span class="dt">interval_type =</span> <span class="st">&quot;HPD&quot;</span>)) <span class="op">%&gt;%</span>
+<span class="st">  </span>ungroup
+bcda_H1b &lt;-<span class="st"> </span>searches_H1 <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">keep_where</span>(group <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Control&quot;</span>, <span class="st">&quot;Test (Recall)&quot;</span>)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">arrange</span>(wiki, <span class="kw">desc</span>(group)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(wiki) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">do</span>(BCDA<span class="op">::</span><span class="kw">tidy</span>(BCDA<span class="op">::</span><span class="kw">beta_binom</span>(.<span class="op">$</span>x, .<span class="op">$</span>n), <span class="dt">interval_type =</span> <span class="st">&quot;HPD&quot;</span>)) <span class="op">%&gt;%</span>
 <span class="st">  </span>ungroup</code></pre></div>
-<p class="caption">
-<strong>Table 4</strong>: Clicks on cross-wiki search results.
-</p>
-<div data-pagedtable="false">
-<script data-pagedtable-source type="application/json">
-{"columns":[{"label":["Wiki"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Group"],"name":[2],"type":["chr"],"align":["left"]},{"label":["Session"],"name":[3],"type":["chr"],"align":["left"]},{"label":["Search"],"name":[4],"type":["chr"],"align":["left"]},{"label":["Timestamp"],"name":[5],"type":["S3: POSIXct"],"align":["right"]},{"label":["Click"],"name":[6],"type":["chr"],"align":["left"]},{"label":["Position of clicked result"],"name":[7],"type":["chr"],"align":["left"]},{"label":["Sister Project"],"name":[8],"type":["chr"],"align":["left"]},{"label":["Destination"],"name":[9],"type":["chr"],"align":["left"]}],"data":[{"1":"Catalan Wikipedia","2":"Test (Random)","3":"ce6ada5fc40aff69","4":"2d66d732e6200feciz6s86bc","5":"2017-02-15 09:55:50","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"1d6627ccb6e37957","4":"fca8e569b6fa61b0iz72tze4","5":"2017-02-15 14:52:44","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"a11b2d5b53a12460","4":"79c76d135d3be3f4izcyvus6","5":"2017-02-19 17:46:44","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"06e914ca55575d35","4":"7f894b210437433aizff4z77","5":"2017-02-21 10:59:18","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"910f848c70d959e1","4":"3eb639d6cafd1affizfia5yt","5":"2017-02-21 11:26:44","6":"1st","7":"1st","8":"Commons (or same)","9":"Multimedia Search"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"910f848c70d959e1","4":"3eb639d6cafd1affizfia5yt","5":"2017-02-21 11:26:44","6":"2nd","7":"1st","8":"Commons (or same)","9":"Multimedia Search"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"d12cce331a788a53","4":"b28cc07c40dd0974izfnc39f","5":"2017-02-21 14:48:28","6":"1st","7":"2nd","8":"Wiktionary","9":"More Results"},{"1":"Catalan Wikipedia","2":"Test (Random)","3":"9f6aa4a2670fb662","4":"0f9649b60f30a518izfskykp","5":"2017-02-21 17:15:15","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Catalan Wikipedia","2":"Test (Recall)","3":"efa929ab95ccd5ea","4":"59c0a5850d9ce2b2iz7cnj4g","5":"2017-02-15 19:22:39","6":"1st","7":"2nd","8":"Wikibooks","9":"Article"},{"1":"Catalan Wikipedia","2":"Test (Recall)","3":"9e471c000fa6889b","4":"6c01af4ef44f3c6aiz7l2of6","5":"2017-02-15 23:23:21","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Catalan Wikipedia","2":"Test (Recall)","3":"6c531317fd8b32cb","4":"de809c6fc92bc59dizctfjb4","5":"2017-02-19 15:16:04","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"f557d33d21767344","4":"d9ce53edc3946ed1iz624rbz","5":"2017-02-14 21:46:00","6":"1st","7":"2nd","8":"Wikibooks","9":"Article"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"9edbc5cad22b821b","4":"38dfbe3b29214e66iz7ez1mw","5":"2017-02-15 20:32:52","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"7c9eaceeab704918","4":"60adb945e6ef9250iz91doh7","5":"2017-02-16 23:47:36","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"ca7fc0600bde50a2","4":"35a0ba31fce4dfceizcyodd8","5":"2017-02-19 17:43:38","6":"1st","7":"2nd","8":"Wikiquote","9":"More Results"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"ca7fc0600bde50a2","4":"35a0ba31fce4dfceizcyodd8","5":"2017-02-19 17:45:50","6":"2nd","7":"2nd","8":"Wikisource","9":"More Results"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"be48b919cad81df5","4":"a7ff66729b70679eizef90cf","5":"2017-02-20 18:14:59","6":"1st","7":"5th","8":"Wiktionary","9":"Article"},{"1":"Italian Wikipedia","2":"Test (Random)","3":"f91a6afc9c06d709","4":"4ea9351dc7622550izf7n0ik","5":"2017-02-21 07:52:30","6":"1st","7":"2nd","8":"Wikiquote","9":"More Results"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"5f102ead9c838725","4":"9245d89a3987258ciz4f0nji","5":"2017-02-13 18:09:50","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"b984416032114f21","4":"9f9253566d66cb2diz6tcmy6","5":"2017-02-15 10:25:52","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"7de1d49a56ca86f2","4":"e258c130f8bb1e6ciz9l9vaj","5":"2017-02-17 09:04:18","6":"1st","7":"2nd","8":"Wikisource","9":"Article"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"7de1d49a56ca86f2","4":"e258c130f8bb1e6ciz9l9vaj","5":"2017-02-17 09:04:32","6":"2nd","7":"2nd","8":"Wikisource","9":"More Results"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"2200104a8cc18603","4":"d66f4aefcfd1f542izd5j3ur","5":"2017-02-19 20:55:56","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"e7d7261cbb61cc8f","4":"f06ac30384a20fbbize1akl8","5":"2017-02-20 11:44:06","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Italian Wikipedia","2":"Test (Recall)","3":"8871a6e212419d19","4":"a31853eb7b7b8eaaizeo1020","5":"2017-02-20 22:19:53","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"1967e33dd2591f6a","4":"9857acc60b05e92biz6npun1","5":"2017-02-16 07:53:01","6":"1st","7":"2nd","8":"Wiktionary","9":"Article"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"75956f6a9575cc55","4":"9f5ed2262af97c03iz8qo7hm","5":"2017-02-16 18:47:48","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"a4ed7807daeaf643","4":"ec97ed387e158395iz9l6ms9","5":"2017-02-17 09:02:54","6":"1st","7":"3rd","8":"Wikibooks","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"d3cd4f80ef39f5f9","4":"76ab5f6b1ad2e4c1iz9n4h5q","5":"2017-02-17 09:56:19","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"0c5e188524f7092b","4":"52727bf3a69cc196iza6osgb","5":"2017-02-17 19:09:52","6":"1st","7":"3rd","8":"Wikiquote","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"b728e6ad8468b1e5","4":"f0cf41b223c11650izb4smgj","5":"2017-02-18 10:58:37","6":"1st","7":"1st","8":"Commons (or same)","9":"Multimedia Search"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"a039c19c9d26ab67","4":"f1d7b0c4d46c0ea0izcm121j","5":"2017-02-19 11:48:54","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"381627610018f24d","4":"ef3673cbf8aaa108izegcvoa","5":"2017-02-20 19:09:30","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"5c5a04a15e3df517","4":"5506b2b79a1c78e4izfb9qpu","5":"2017-02-21 09:08:42","6":"1st","7":"7th","8":"Wiktionary","9":"Article"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"0650f615a10b01bd","4":"36e742b4e664ad22izfz5f6s","5":"2017-02-21 20:18:41","6":"1st","7":"1st","8":"Commons (or same)","9":"Multimedia Search"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"0650f615a10b01bd","4":"36e742b4e664ad22izfz5f6s","5":"2017-02-21 20:19:07","6":"2nd","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Random)","3":"a63eabab4f859929","4":"8626a465fbdda524izg5rbjy","5":"2017-02-21 23:41:15","6":"1st","7":"2nd","8":"Wiktionary","9":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"39a759ab9a871eda","4":"c6deed74678b7936iz6fvitg","5":"2017-02-15 04:11:10","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"39a759ab9a871eda","4":"c6deed74678b7936iz6fvitg","5":"2017-02-15 04:12:03","6":"2nd","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"39a759ab9a871eda","4":"c6deed74678b7936iz6fvitg","5":"2017-02-15 04:12:14","6":"3rd","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"c395f27785ee82de","4":"2d576fc74edee1cdiz6guuqc","5":"2017-02-15 04:41:59","6":"1st","7":"2nd","8":"Wikinews","9":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"3bd819588c3c956e","4":"5ab3dbdcd7e528f1iz6wsdom","5":"2017-02-15 11:59:25","6":"1st","7":"2nd","8":"Wikivoyage","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"c5c58cdcbb588ce5","4":"948ffd3130f19d43iz6y2j1z","5":"2017-02-15 12:39:38","6":"1st","7":"2nd","8":"Wikiquote","9":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"0642e9f1a0e29e0e","4":"f04689387e5e11a9iz7abfjj","5":"2017-02-15 18:16:20","6":"1st","7":"2nd","8":"Wikiquote","9":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"0642e9f1a0e29e0e","4":"f04689387e5e11a9iz7abfjj","5":"2017-02-15 18:17:03","6":"2nd","7":"2nd","8":"Wikiquote","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"97823217a0fb3442","4":"a671e4d377940575iz7ysot8","5":"2017-02-16 05:47:47","6":"1st","7":"2nd","8":"Wikiquote","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"7e0b058e7e29d7e7","4":"27cb405f20aa9affiz84bp91","5":"2017-02-16 08:22:35","6":"1st","7":"2nd","8":"Wiktionary","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"bb84a39e9e5587af","4":"08ff365efa21449fiza4d8su","5":"2017-02-17 17:59:08","6":"1st","7":"2nd","8":"Wikibooks","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"800bfee082d2bdb9","4":"5353f68cc42762eeiza6o70d","5":"2017-02-17 19:03:40","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"c337f34b43b7c291","4":"ba0577ec2e4a30a3izaa046j","5":"2017-02-17 20:37:12","6":"1st","7":"2nd","8":"Wikisource","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"891b3fc343e1c677","4":"7a9cdb6bebfaa405izadn58q","5":"2017-02-17 22:24:08","6":"1st","7":"2nd","8":"Wiktionary","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"873b47cd9cc6f60b","4":"49985372cc5c9e1aizchhklm","5":"2017-02-19 09:41:18","6":"1st","7":"1st","8":"Commons (or same)","9":"Multimedia Search"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"873b47cd9cc6f60b","4":"f72f5f78bfad1947izchixy6","5":"2017-02-19 09:43:48","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"99b5b022f3bae9f1","4":"a86ce03b264f2c90izcro9st","5":"2017-02-19 14:26:50","6":"1st","7":"3rd","8":"Wiktionary","9":"More Results"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"bcddfc545995c080","4":"42e775bf00389270ize31n0j","5":"2017-02-20 12:33:13","6":"1st","7":"2nd","8":"Wikisource","9":"Article"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"8c8c734956713eb5","4":"dd8c10f6ff56dba4izfmnsye","5":"2017-02-21 14:29:48","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Persian Wikipedia","2":"Test (Recall)","3":"8c8c734956713eb5","4":"00b00abe0afaee91izfmuto6","5":"2017-02-21 14:35:34","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"cdce82a33a96487a","4":"9e9e675e166d0229iz6zf71a","5":"2017-02-15 13:17:12","6":"1st","7":"2nd","8":"Wikibooks","9":"Article"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"5c3f76d01494ce48","4":"f7452fd1c757f8c4iz704dal","5":"2017-02-15 13:36:50","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"ef1fb87d2847f622","4":"9c45d5846e18bf21iz7fli2d","5":"2017-02-15 20:50:13","6":"1st","7":"1st","8":"Commons (or same)","9":"Multimedia Search"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"5fe7a2a5b70418aa","4":"bb748a4ef08e94a9iza3dgwu","5":"2017-02-17 17:30:56","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"45cf72445894c4f4","4":"d3a677a67aa812fdizbeqv4x","5":"2017-02-18 15:37:43","6":"1st","7":"2nd","8":"Wiktionary","9":"More Results"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"e741be7425f97f09","4":"8dd9dcda774428c3izbf8eyz","5":"2017-02-18 15:52:10","6":"1st","7":"5th","8":"Wikinews","9":"More Results"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"e741be7425f97f09","4":"15b880d6b2049910izbf5t0z","5":"2017-02-18 15:52:52","6":"1st","7":"7th","8":"Wikiquote","9":"More Results"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"62913060ede98fc8","4":"a3a2f111258ed2a8izdzraev","5":"2017-02-20 11:00:23","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"18cd60df0487f92a","4":"6a4b01d1de91beb8ize0qhhs","5":"2017-02-20 11:28:31","6":"1st","7":"2nd","8":"Wikisource","9":"More Results"},{"1":"Polish Wikipedia","2":"Test (Random)","3":"c850bab7bd52bfa2","4":"7f1c7b6f784fa1a0ize5789i","5":"2017-02-20 13:33:26","6":"1st","7":"1st","8":"Commons (or same)","9":"Multimedia Search"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"6aa49644def80804","4":"426ca6b6edf48aaeiz77ff1q","5":"2017-02-15 17:01:20","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"2d2149b162085ec5","4":"485714b476b1fdd7iza80dqi","5":"2017-02-17 19:35:46","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"c62a9bdd27f6221d","4":"9b50d5d245fee978izbhixg7","5":"2017-02-18 16:55:27","6":"1st","7":"2nd","8":"Wikiquote","9":"More Results"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"ca638600aaf40f8c","4":"7d5b168a9acc5e85izckppvo","5":"2017-02-19 11:12:58","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"849ee1273298a850","4":"a08adc36b2334c76izcn7zjz","5":"2017-02-19 12:22:30","6":"1st","7":"2nd","8":"Wikisource","9":"More Results"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"01369e4ceb108836","4":"b58f5f14bbdf87d0izd6vzrm","5":"2017-02-19 21:30:36","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"01369e4ceb108836","4":"b58f5f14bbdf87d0izd6vzrm","5":"2017-02-19 21:31:48","6":"2nd","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"01369e4ceb108836","4":"4dd61bc4a031065fizd72iui","5":"2017-02-19 21:39:01","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"0defd989ab0bc59d","4":"7ec6bcc3a481695aizdvzjv7","5":"2017-02-20 09:14:54","6":"1st","7":"2nd","8":"Wikiquote","9":"More Results"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"8cad138c1ee0bfce","4":"427811716dcb7319izfa3s8e","5":"2017-02-21 08:39:09","6":"1st","7":"3rd","8":"Wikiquote","9":"More Results"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"828786f965b7d41e","4":"27241535c4f31cfcizg0wg8s","5":"2017-02-21 21:08:39","6":"1st","7":"1st","8":"Commons (or same)","9":"File"},{"1":"Polish Wikipedia","2":"Test (Recall)","3":"828786f965b7d41e","4":"bd98b13922529ea9izg135pw","5":"2017-02-21 21:13:55","6":"1st","7":"1st","8":"Commons (or same)","9":"File"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
-  </script>
+<div class="figure">
+<img src="index_files/figure-html/bcda_H1a_plot-1.png" alt="Figure 7: Comparison of the Control group with the Test (Random) group." />
+<p class="caption"><strong>Figure 7</strong>: Comparison of the <span class="test-group-1">Control</span> group with the <span class="test-group-2">Test (Random)</span> group.</p>
 </div>
-<p>In Table 4…</p>
+<div class="figure">
+<img src="index_files/figure-html/bcda_H1b_plot-1.png" alt="Figure 8: Comparison of the Control group with the Test (Recall) group." />
+<p class="caption"><strong>Figure 8</strong>: Comparison of the <span class="test-group-1">Control</span> group with the <span class="test-group-2">Test (Recall)</span> group.</p>
+</div>
+<?xml version="1.0" encoding="UTF-8"?>
+<table class="table table-striped table-hover" style="margin-left: auto; margin-right: auto;">
+<caption>
+<strong>Table 6</strong>:
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Wiki
+</th>
+<th style="text-align:left;">
+Comparison
+</th>
+<th style="text-align:left;">
+Relative Risk
+</th>
+<th style="text-align:left;">
+95% CI
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Catalan Wikipedia
+</td>
+<td style="text-align:left;">
+Test (Random) vs Control
+</td>
+<td style="text-align:left;">
+1.103
+</td>
+<td style="text-align:left;">
+(0.920, 1.302)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Catalan Wikipedia
+</td>
+<td style="text-align:left;">
+Test (Recall) vs Control
+</td>
+<td style="text-align:left;">
+1.096
+</td>
+<td style="text-align:left;">
+(0.903, 1.289)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Italian Wikipedia
+</td>
+<td style="text-align:left;">
+Test (Random) vs Control
+</td>
+<td style="text-align:left;">
+1.047
+</td>
+<td style="text-align:left;">
+(0.941, 1.160)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Italian Wikipedia
+</td>
+<td style="text-align:left;">
+Test (Recall) vs Control
+</td>
+<td style="text-align:left;">
+0.976
+</td>
+<td style="text-align:left;">
+(0.881, 1.085)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Persian Wikipedia
+</td>
+<td style="text-align:left;">
+Test (Random) vs Control
+</td>
+<td style="text-align:left;">
+1.055
+</td>
+<td style="text-align:left;">
+(0.904, 1.199)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Persian Wikipedia
+</td>
+<td style="text-align:left;">
+Test (Recall) vs Control
+</td>
+<td style="text-align:left;">
+1.131
+</td>
+<td style="text-align:left;">
+(0.977, 1.283)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Polish Wikipedia
+</td>
+<td style="text-align:left;">
+Test (Random) vs Control
+</td>
+<td style="text-align:left;">
+0.999
+</td>
+<td style="text-align:left;">
+(0.850, 1.161)
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Polish Wikipedia
+</td>
+<td style="text-align:left;">
+Test (Recall) vs Control
+</td>
+<td style="text-align:left;">
+1.122
+</td>
+<td style="text-align:left;">
+(0.955, 1.304)
+</td>
+</tr>
+</tbody>
+</table>
+<p>In Figures 6, 7, and 8, we saw that the clickthrough rate was higher in <span class="test-group-2">Test (Random)</span> and <span class="test-group-3">Test (Recall)</span> than in <span class="test-group-1">Control</span> on almost all of the four wikis. The only exception being the clickthrough rate of users in the <span class="test-group-2">Test (Random)</span> and <span class="test-group-3">Test (Recall)</span> group on the Italian and Polish Wikipedias, respectively.</p>
+<p>Table 6 shows the <a href="https://en.wikipedia.org/wiki/Relative_risk">relative risk</a> – how more likely each respective test group is to engage with the search results (same-wiki or cross-wiki) than the <span class="test-group-1">Control</span> group. For example, on Catalan Wikipedia, users in the <span class="test-group-2">Test (Random)</span> are 1.103 times more likely to click on a result than users in the <span class="test-group-1">Control</span> group. While most of the estimates are greater than 1 (suggesting more relevant results), the 95% <a href="https://en.wikipedia.org/wiki/Credible_interval">credible intervals</a> contain 1, meaning we do not have sufficient evidence to draw definitive conclusions.</p>
 </div>
 </div>
 <div id="discussion" class="section level1">
 <h1>Discussion</h1>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam id dolor id nibh ultricies vehicula ut id elit. Nullam quis risus eget urna mollis ornare vel eu leo. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Nullam id dolor id nibh ultricies vehicula ut id elit.</p>
+<p>As can be seen in Figure 1, the cross-wiki results were displayed in black rather than the standard blue. This issue is tracked in <a href="https://phabricator.wikimedia.org/T158935">T158935</a>. We cannot estimate the effect this may have had on the results of the test, but we suspect this may have had a considerable negative effect because the results did not look like click-able links.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">indices_subset &lt;-<span class="st"> </span>indices <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">keep_where</span>(<span class="op">!</span>(project <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;commons&quot;</span>, <span class="st">&quot;wikipedia&quot;</span>))) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(cirrus_id) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">sisters =</span> <span class="kw">length</span>(<span class="kw">unique</span>(project[n_results <span class="op">&gt;</span><span class="st"> </span><span class="dv">0</span>])))
+searches_subset &lt;-<span class="st"> </span>searches <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">keep_where</span>(group <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;Test (Recall)&quot;</span>, <span class="st">&quot;Test (Random)&quot;</span>)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">keep_where</span>(event <span class="op">==</span><span class="st"> &quot;SERP&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">distinct</span>(cirrus_id)
+crosswiki_results &lt;-<span class="st"> </span>searches_subset <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">inner_join</span>(indices_subset, <span class="dt">by =</span> <span class="st">&quot;cirrus_id&quot;</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(sisters) <span class="op">%&gt;%</span>
+<span class="st">  </span>dplyr<span class="op">::</span><span class="kw">count</span>()</code></pre></div>
+<div class="figure">
+<img src="index_files/figure-html/crosswiki_results_plot-1.png" alt="Figure 9: How many of the two test groups’ searches returned cross-wiki results from 0 (none) - 7 (all) sister projects." />
+<p class="caption"><strong>Figure 9</strong>: How many of the two test groups’ searches returned cross-wiki results from 0 (none) - 7 (all) sister projects.</p>
+</div>
+<p>We also suspect that the high zero results rate for each of the sister projects for these four languages may have been responsible for the few sister-project clicks. In Figure 9, relatively few searches had more than 3 cross-wiki search results.</p>
+<p>Furthermore, since the users did not see more than the top result from each sister project, it is possible they did not event want to bother with viewing more results since the one they were shown was not relevant. Ideally, the first result would always be the most relevant one, but that is not the case, and sometimes results further down the list are more relevant to the user’s actual task.</p>
+<p>Additionally, Multimedia results were shown in a reverse order (see <a href="https://phabricator.wikimedia.org/T158937">T158937</a>), but we suspect this is a minor bug that did not have an effect on the test.</p>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>
@@ -866,26 +1066,26 @@ More Results
 <div id="ref-R-base">
 <p>[1] R Core Team. R: A language and environment for statistical computing [Internet]. Vienna, Austria: R Foundation for Statistical Computing; 2016. Available from: <a href="https://www.R-project.org/" class="uri">https://www.R-project.org/</a>.</p>
 </div>
-<div id="ref-R-rmarkdown">
-<p>[2] Allaire J, Cheng J, Xie Y, et al. Rmarkdown: Dynamic documents for r [Internet]. 2016. Available from: <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
+<div id="ref-R-binom">
+<p>[2] Dorai-Raj S. Binom: Binomial confidence intervals for several parameterizations [Internet]. 2014. Available from: <a href="https://CRAN.R-project.org/package=binom" class="uri">https://CRAN.R-project.org/package=binom</a>.</p>
 </div>
-<div id="ref-R-ggplot2">
-<p>[3] Wickham H. Ggplot2: Elegant graphics for data analysis [Internet]. Springer-Verlag New York; 2009. Available from: <a href="http://ggplot2.org" class="uri">http://ggplot2.org</a>.</p>
+<div id="ref-R-BCDA">
+<p>[3] Popov M. BCDA: Tools for bayesian categorical data analysis [Internet]. Available from: <a href="https://github.com/bearloga/BCDA" class="uri">https://github.com/bearloga/BCDA</a>.</p>
+</div>
+<div id="ref-R-rmarkdown">
+<p>[4] Allaire J, Cheng J, Xie Y, et al. Rmarkdown: Dynamic documents for r [Internet]. 2016. Available from: <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
 </div>
 <div id="ref-R-magrittr">
-<p>[4] Bache SM, Wickham H. Magrittr: A forward-pipe operator for r [Internet]. 2014. Available from: <a href="https://CRAN.R-project.org/package=magrittr" class="uri">https://CRAN.R-project.org/package=magrittr</a>.</p>
-</div>
-<div id="ref-R-dplyr">
-<p>[5] Wickham H, Francois R. Dplyr: A grammar of data manipulation [Internet]. 2016. Available from: <a href="https://CRAN.R-project.org/package=dplyr" class="uri">https://CRAN.R-project.org/package=dplyr</a>.</p>
+<p>[5] Bache SM, Wickham H. Magrittr: A forward-pipe operator for r [Internet]. 2014. Available from: <a href="https://CRAN.R-project.org/package=magrittr" class="uri">https://CRAN.R-project.org/package=magrittr</a>.</p>
 </div>
 <div id="ref-R-tidyr">
 <p>[6] Wickham H. Tidyr: Easily tidy data with ’spread()’ and ’gather()’ functions [Internet]. 2017. Available from: <a href="https://CRAN.R-project.org/package=tidyr" class="uri">https://CRAN.R-project.org/package=tidyr</a>.</p>
 </div>
-<div id="ref-R-BCDA">
-<p>[7] Popov M. BCDA: Tools for bayesian categorical data analysis [Internet]. Available from: <a href="https://github.com/bearloga/BCDA" class="uri">https://github.com/bearloga/BCDA</a>.</p>
+<div id="ref-R-dplyr">
+<p>[7] Wickham H, Francois R. Dplyr: A grammar of data manipulation [Internet]. 2016. Available from: <a href="https://CRAN.R-project.org/package=dplyr" class="uri">https://CRAN.R-project.org/package=dplyr</a>.</p>
 </div>
-<div id="ref-R-binom">
-<p>[8] Dorai-Raj S. Binom: Binomial confidence intervals for several parameterizations [Internet]. 2014. Available from: <a href="https://CRAN.R-project.org/package=binom" class="uri">https://CRAN.R-project.org/package=binom</a>.</p>
+<div id="ref-R-ggplot2">
+<p>[8] Wickham H. Ggplot2: Elegant graphics for data analysis [Internet]. Springer-Verlag New York; 2009. Available from: <a href="http://ggplot2.org" class="uri">http://ggplot2.org</a>.</p>
 </div>
 <div id="ref-R-wmf">
 <p>[9] Keyes O, Popov M. Wmf: R code for wikimedia foundation internal usage [Internet]. 2017. Available from: <a href="https://phabricator.wikimedia.org/diffusion/1821/" class="uri">https://phabricator.wikimedia.org/diffusion/1821/</a>.</p>

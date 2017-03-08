@@ -50,6 +50,65 @@ monthly_unique_devices %>%
                 `percentage` = sprintf("~%.2f%%", 100 * devices/sum(devices)))
 ```
 
+```{r zrr}
+# ssh -N stat3 -L 3307:analytics-store.eqiad.wmnet:3306
+library(RMySQL)
+con <- dbConnect(MySQL(), host = "127.0.0.1", group = "client", dbname = "log", port = 3307)
+query <- "SELECT
+  wiki, timestamp, event_uniqueId AS event_id,
+  event_mwSessionId AS session_id,
+  event_pageViewId AS page_id,
+  MD5(LOWER(TRIM(event_query))) AS query_hash,
+  event_hitsReturned AS n_results,
+  event_searchToken AS search_token
+FROM TestSearchSatisfaction2_16270835
+WHERE
+  LEFT(timestamp, 6) = '201702'
+  AND event_subTest IS NULL
+  AND event_action = 'searchResultPage'
+  AND event_source = 'fulltext';"
+events <- wmf::mysql_read(query, "log", con) # Fetched 307080 rows and 7 columns.
+wmf::mysql_disconnect(con)
+# Events may be duplicated
+events <- events %>%
+  mutate(timestamp = lubridate::ymd_hms(timestamp),
+         date = as.Date(timestamp)) %>%
+  arrange(session_id, event_id, timestamp) %>%
+  dplyr::distinct(session_id, event_id, .keep_all = TRUE)
+# SERPs may be duplicated
+SERPs <- events %>%
+  select(c(session_id, page_id, query_hash, search_token)) %>%
+  group_by(session_id, query_hash) %>%
+  mutate(serp_id = page_id[1], cirrus_id = search_token[1]) %>%
+  ungroup %>%
+  select(c(page_id, serp_id, cirrus_id))
+events <- events %>%
+  dplyr::left_join(SERPs, by = "page_id")
+langproj <- polloi::get_langproj()
+events2 <- events %>%
+  dplyr::left_join(keep_where(langproj, project %in% c("Wikibooks", "Wikinews", "Wikipedia", "Wikiquote", "Wikisource", "Wikiversity", "Wikivoyage", "Wiktionary")), by = c("wiki" = "wikiid")) %>%
+  keep_where(!is.na(project), !is.na(language))
+temp <- events2 %>%
+  keep_where(date >= "2017-02-10", date <= "2017-02-24") %>%
+  dplyr::distinct(project, serp_id, n_results) %>%
+  group_by(project) %>%
+  summarize(zrr = round(sum(n_results == 0)/n(), 4)) %>%
+  as.data.frame
+dump("temp", "")
+# temp2 <- events2 %>%
+#   dplyr::distinct(serp_id, n_results, .keep_all = TRUE) %>%
+#   keep_where(language %in% c("Catalan", "Persian", "Polish", "Italian")) %>%
+#   group_by(language, project) %>%
+#   summarize(zrr = round(sum(n_results == 0)/n(), 4), searches = n()) %>%
+#   ungroup %>%
+#   keep_where(searches > 2) %>%
+#   select(-searches) %>%
+#   tidyr::spread(project, zrr, fill = -1) %>%
+#   tidyr::gather(project, zrr, -language) %>%
+#   as.data.frame
+# dump("temp2", "")
+```
+
 ```{r data}
 if (!dir.exists("data")) {
   dir.create("data")
@@ -102,4 +161,122 @@ save(list = c("searches", "indices"), file = "data/T156300.RData")
 
 ```{r}
 length(unique(searches$session_id))
+```
+
+```{r}
+indices %>%
+  keep_where(!project %in% c("commons", "wikipedia")) %>%
+  group_by(cirrus_id) %>%
+  keep_where(n_results > 0) %>%
+  summarize(
+    wikis = length(unique(project)),
+    sisters = paste0(unique(project), collapse = ", "),
+    sourcequote = any(c("wikiquote", "wikisource") %in% project)
+  ) %>%
+  group_by(wikis, sisters, sourcequote) %>%
+  summarize(searches = n()) %>%
+  arrange(desc(searches)) %>%
+  ungroup %>%
+  View
+```
+
+```{r sister_clicks_data}
+sister_clicks <- searches %>%
+  keep_where(
+    group %in% c("Test (Random)", "Test (Recall)"),
+    event == "sister-project click",
+    `cirrus log: some sister-wiki results`
+  ) %>%
+  mutate(
+    destination = if_else(destination == "Article" & `sister project` == "commons", "File", destination),
+    `sister project` = stringi::stri_trans_totitle(`sister project`),
+    `sister project` = if_else(`sister project` == "Commons", "Commons (or same)", `sister project`)
+  ) %>%
+  arrange(wiki, group, timestamp) %>%
+  group_by(wiki, group, serp_id) %>%
+  mutate(Click = cumsum(rep(1, n()))) %>%
+  select(Wiki = wiki, Group = group,
+         Session = session_id, Search = serp_id, Timestamp = timestamp,
+         Click, `Position of clicked result` = `clicked-result position`,
+         `Sister Project` = `sister project`, Destination = destination) %>%
+  ungroup
+```
+```{r sister_clicks_caption, results=ifelse(is_html(), 'asis', 'hide'), echo=FALSE}
+table_caps(name = "Sister Clicks", caption = ifelse(is_html(), "Clicks on cross-wiki search results.", "Sample of 16 events (2 from each wiki-group combination) that are clicks on cross-wiki search results."))
+sister_clicks_cap <- format_caption(table_caps, "Sister Clicks")
+print_caption(sister_clicks_cap)
+```
+```{r sister_clicks_table, results=ifelse(is_html(), 'markup', 'asis'), echo=FALSE}
+if (is_html()) {
+  sister_clicks %>%
+    mutate(
+      Click = vapply(Click, toOrdinal::toOrdinal, ""),
+      `Position of clicked result` = vapply(`Position of clicked result`, toOrdinal::toOrdinal, "")
+    ) %>%
+    rmarkdown:::print.paged_df()
+} else {
+  sister_clicks %>%
+    mutate(
+      Weight = case_when(
+        .$Destination == "File" ~ 1/4,
+        .$Destination == "Multimedia Search" ~ 1/3,
+        .$Destination == "More Results" ~ 1/2,
+        .$Destination == "Article" ~ 2/3
+      ),
+      Wiki = sub(" Wikipedia", "", Wiki, fixed = TRUE),
+      Group = ifelse(Group == "Test (Random)", "Random", "Recall")
+    ) %>%
+    group_by(Wikipedia = Wiki, Group) %>%
+    dplyr::sample_n(2, weight = Weight) %>%
+    mutate(Click = vapply(Click, toOrdinal::toOrdinal, ""),
+           Position = vapply(`Position of clicked result`, toOrdinal::toOrdinal, "")) %>%
+    select(c(Wikipedia, Group, Click, Position, Project = `Sister Project`, Destination)) %>%
+    ungroup %>%
+    fable(sister_clicks_cap)
+}
+```
+
+In `r table_caps("Sister Clicks", display = "cite")`...
+
+The table below (obtained from Wikimedia's [Site Matrix](https://meta.wikimedia.org/wiki/Special:SiteMatrix)) shows the availability of each project in those four languages:
+
+```{r}
+library(rvest)
+
+site_matrix <- read_html("https://meta.wikimedia.org/wiki/Special:SiteMatrix")
+
+site_matrix %<>%
+  html_node("#mw-sitematrix-table") %>%
+  html_children() %>%
+  html_nodes("a") %>%
+  html_attrs() %>%
+  as.list() %>%
+  lapply(cbind) %>%
+  lapply(t) %>%
+  lapply(as.data.frame, stringsAsFactors = FALSE) %>%
+  bind_rows
+
+of_interest <- expand.grid(
+  c("ca", "fa", "pl", "it"),
+  c("wikisource", "wikiquote", "wikibooks", "wikinews", "wikipedia", "wikivoyage", "wiktionary", "wikiversity")
+) %>%
+  mutate(href = paste0("//", Var1, ".", Var2, ".org"))
+
+site_matrix %>%
+  keep_where(href %in% of_interest$href) %>%
+  mutate(
+    exists = if_else(is.na(class), TRUE, FALSE),
+    lang = sub("^//([a-z]{2})\\.wik.*", "\\1", href),
+    proj = sub("^//[a-z]{2}\\.w(ik.*)\\.org$", "W\\1", href)
+  ) %>%
+  mutate(language = dplyr::case_when(
+    .$lang == "ca" ~ "Catalan",
+    .$lang == "fa" ~ "Persian",
+    .$lang == "it" ~ "Italian",
+    .$lang == "pl" ~ "Polish"
+  )) %>%
+  mutate(exists = if_else(exists, "Exists", "-")) %>%
+  select(c(Language = language, Project = proj, exists)) %>%
+  tidyr::spread(Language, exists) %>%
+  knitr::kable(format = "markdown", align = "lcccc")
 ```

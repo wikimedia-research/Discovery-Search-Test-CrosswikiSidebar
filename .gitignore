@@ -42,7 +42,7 @@ docs/index.tex
 *.tsv.gz
 
 # PDF version of the report that will not be uploaded
-docs/index.pdf
+# docs/index.pdf
 
 # Libs, etc. that will be uploaded on first draft but can be ignored for now
-docs/index_files/*
+# docs/index_files/*
