@@ -29,7 +29,11 @@ dl dd {
 .no-italics { font-style: normal; }
 
 #references {
-  margin-bottom: 100px;
+  margin-bottom: 50px;
+}
+
+div.footnotes {
+  margin-bottom: 50px;
 }
 
 #wmf {

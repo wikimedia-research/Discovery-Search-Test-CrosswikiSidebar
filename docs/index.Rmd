@@ -13,7 +13,7 @@ author:
   name: "Mikhail Popov"
 - affiliation: "Product Manager (Analysis, Search Frontend), Wikimedia Foundation"
   name: "Deb Tankersley"
-abstract: "Wikimedia Engineering's Discovery's Search team ran an A/B test from 9 Feb 2017 to 22 Feb 2017 to assess the effectiveness of performing cross-wiki searches and showing Catalan, Italian, Persian, and Polish Wikipedias' users results from sister projects such as Wikisource and Wikiquote. We found that while the overall engagement with the search results was higher for the two test groups compared to the control group, there was no sufficient evidence to definitively say that the additional search results increased user engagement. We suspect that a critical UX design issue -- links shown in black, rather than standard blue -- and the particular languages this test was deployed on (resulting in a higher zero results rate than seen across other languages) had a negative effect on the results, and recommend performing a follow-up test."
+abstract: "Wikimedia Engineering's Discovery's Search team ran an A/B test from 9 Feb 2017 to 22 Feb 2017 to assess the effectiveness of performing cross-wiki searches and showing Catalan, Italian, Persian, and Polish Wikipedias' users results from sister projects such as Wikisource and Wikiquote. We found that while the overall engagement with the search results was higher for the two test groups compared to the control group, there was not sufficient evidence to definitively say that the additional search results increased user engagement. We suspect that a critical UX design issue -- links shown in black, rather than standard blue -- and the particular languages this test was deployed on (resulting in a higher zero results rate than seen across other languages) had a negative effect on the results, and recommend performing a follow-up test on additional languages."
 output:
   pdf_document:
     citation_package: natbib
@@ -33,7 +33,7 @@ output:
     highlight: zenburn
     keep_md: yes
     mathjax: https://tools-static.wmflabs.org/cdnjs/ajax/libs/mathjax/2.6.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML
-    md_extensions: +raw_html +markdown_in_html_blocks +tex_math_dollars +fancy_lists +startnum +lists_without_preceding_blankline
+    md_extensions: +raw_html +markdown_in_html_blocks +tex_math_dollars +fancy_lists +startnum +lists_without_preceding_blankline +footnotes +implicit_header_references
     self_contained: no
     theme: flatly
     toc: yes
@@ -173,7 +173,7 @@ if (is_html()) {
 
 # Introduction
 
-Within the [Wikimedia Foundation](https://wikimediafoundation.org/wiki/Home)'s [Engineering group](https://www.mediawiki.org/wiki/Wikimedia_Engineering), the [Discovery department](https://www.mediawiki.org/wiki/Wikimedia_Discovery)'s mission is to make the wealth of knowledge and content in the [Wikimedia projects](https://wikimediafoundation.org/wiki/Our_projects) (such as [Wikipedia](https://www.wikipedia.org/)) easily discover-able. The Search team is responsible for maintaining and enhancing the search features and APIs for MediaWiki, such as language detection (i.e. if a French Wikipedia visitor searches and gets fewer than 3 results, we check if maybe their query is in another language, and if it is in German, then in addition to 0-2 results from French Wikipedia, they would also get results from German Wikipedia).
+Within the [Wikimedia Foundation](https://wikimediafoundation.org/wiki/Home)'s [Engineering group](https://www.mediawiki.org/wiki/Wikimedia_Engineering), the [Discovery department](https://www.mediawiki.org/wiki/Wikimedia_Discovery)'s mission is to make the wealth of knowledge and content in the [Wikimedia projects](https://wikimediafoundation.org/wiki/Our_projects) (such as [Wikipedia](https://www.wikipedia.org/)) easily discoverable. The Search team is responsible for maintaining and enhancing the search features and APIs for MediaWiki, such as language detection -- i.e. if a French Wikipedia visitor searches and gets fewer than 3 results, we check if maybe their query is in another language, and if our language detection determines that the query's language is most likely German (for example), then in addition to results from French Wikipedia, they would also get results from German Wikipedia, if any.
 
 Specifically, the [Search team](https://www.mediawiki.org/wiki/Wikimedia_Discovery/Search)'s current goal is to add cross-wiki searching -- that is, providing search results from other (also referred to as "sister") Wikimedia projects ("*wikis*") within the same language. For example, if a work (e.g. a book or poem) on French Wikisource matched the user's query, that user would be shown results from French Wikisource in addition to any results from French Wikipedia.
 
@@ -218,11 +218,11 @@ The primary questions we wanted to answer are:
 
 - Was the overall engagement with search results better or worse compared to the controls?
 
-On 9 February 2017 we deployed an A/B test on the desktop version of Catalan, Italian, Persian, and Polish Wikipedias to assess the efficacy of this feature. The test concluded on 22 February 2017, after a total 6620 search sessions have been anonymously tracked.
+On 9 February 2017 we deployed an A/B test on the desktop version of Catalan, Italian, Persian, and Polish Wikipedias to assess the efficacy of this feature. The test concluded on 22 February 2017, after a total of 6620 search sessions had been anonymously tracked.
 
 # Methods
 
-This test's event logging (EL) was implemented in JavaScript according to the [TestSearchSatisfaction2](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2) (TSS2) schema, which is the one used by the Search team for its metrics on desktop, data was stored in a MySQL database, and analyzed and reported using R [@R-base].
+This test's event logging (EL) was implemented in JavaScript according to the [TestSearchSatisfaction2 (TSS2)](https://meta.wikimedia.org/wiki/Schema:TestSearchSatisfaction2) schema, which is the one used by the Search team for its metrics on desktop, data was stored in a MySQL database, and analyzed and reported using R [@R-base].
 
 ```{r pkgs}
 import::from(dplyr, group_by, ungroup, keep_where = filter, mutate, arrange, select, transmute, left_join, summarize, bind_rows, case_when, if_else, rename)
@@ -231,7 +231,13 @@ library(ggplot2)
 
 ## Data
 
-The data was collected according to the [TSS2 schema, revision 16270835](https://meta.wikimedia.org/w/index.php?title=Schema:TestSearchSatisfaction2&direction=next&oldid=15922352). `r figure_caps("Flow of users", display = "cite")` shows the flow of Wikipeda visitors on Desktop. Approximately 5.7% of the unique desktop devices that visit the 270 Wikipedias are accounted by Catalan, Italian, Persian, and Polish Wikipedias. In general, desktop users are randomly selected for anonymous tracking at a rate of 1 in 200, but for these wikis we changed the sampling rate to 1 in 10 for Catalan and Persian, and 1 in 50 for Italian and Polish ([Gerrit change 337608](https://gerrit.wikimedia.org/r/#/c/337608/)). After a user was randomly selected into event logging, they had a 50% chance to be selected for the A/B test. Users who made it into the test were then randomly assigned to one of the three groups described above: <span class="test-group-1">Control</span>, <span class="test-group-2">Test (Random)</span>, and <span class="test-group-3">Test (Recall)</span>.
+The data was collected according to the [TSS2 schema, revision 16270835](https://meta.wikimedia.org/w/index.php?title=Schema:TestSearchSatisfaction2&direction=next&oldid=15922352). `r figure_caps("Flow of users", display = "cite")` shows the flow of Wikipeda visitors on Desktop. Approximately 5.7%[^uniques] of the unique desktop devices that visit the 270[^wdqs] Wikipedias are accounted for by Catalan, Italian, Persian, and Polish Wikipedias. In general, desktop users are randomly selected for anonymous tracking at a rate of 1 in 200, but for these wikis we changed the sampling rate to 1 in 10 for Catalan and Persian, and 1 in 50 for Italian and Polish[^sampling]. After a user was randomly selected into event logging, they had a 50% chance to be selected for the A/B test. Users who made it into the test were then randomly assigned to one of the three groups described above: <span class="test-group-1">Control</span>, <span class="test-group-2">Test (Random)</span>, and <span class="test-group-3">Test (Recall)</span>.
+
+[^sampling]: To see the sampling configuration, refer to [Gerrit change 337608](https://gerrit.wikimedia.org/r/#/c/337608/).
+
+[^uniques]: Relative traffic was calculated using a combination of [Wikidata Query Service (WDQS)](https://query.wikidata.org/) and [Wikimedia Analytics](https://www.mediawiki.org/wiki/Analytics)' [monthly unique devices API](https://wikitech.wikimedia.org/wiki/Analytics/Unique_Devices). See [L16--L51 in the workbook](https://github.com/wikimedia-research/Discovery-Search-Test-CrosswikiSidebar/blame/master/Workbook.Rmd#L16--L51) for implementation.
+
+[^wdqs]: The languages Wikipedia is available in were counted by querying [Wikidata](https://www.wikidata.org/wiki/Q52) with [this SPARQL query](https://query.wikidata.org/#PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%0APREFIX%20schema%3A%20%3Chttp%3A%2F%2Fschema.org%2F%3E%0ASELECT%20%28COUNT%20%28DISTINCT%20%3Fsitelink%29%20AS%20%3Flanguages%29%0AWHERE%20%7B%0A%20%20BIND%28wd%3AQ52%20AS%20%3Fwikipedia%29%0A%20%20%3Fsitelink%20schema%3Aabout%20%3Fwikipedia%20.%0A%20%20FILTER%20regex%28str%28%3Fsitelink%29%2C%20%22.wikipedia.org%2Fwiki%2F%22%29%20.%0A%7D).
 
 ```{r user_flow_caption, echo=FALSE}
 user_flow_cap <- format_caption(figure_caps, "Flow of users")
@@ -280,7 +286,7 @@ visitor_flow <- riverplot::makeRiver(
 x <- plot(visitor_flow, node_margin = 3, default_style = ds, fix.pdf = TRUE)
 ```
 
-We would like to note that our event logging does not support cross-wiki tracking, so after the user leaves the search results page, we cannot learn if they have performed subsequent searches, how and how long the user engaged with the visited result's page.
+We would like to note that our event logging does not support cross-wiki tracking, so after the user leaves the search results page, we cannot tell whether they have performed subsequent searches, nor how or how long the user engaged with the visited result's page.
 
 See Phabricator ticket [T149806](https://phabricator.wikimedia.org/T149806) and Gerrit changes [334314](https://gerrit.wikimedia.org/r/#/c/334314/), [313318](https://gerrit.wikimedia.org/r/#/c/313318/), [332991](https://gerrit.wikimedia.org/r/#/c/332991/), [334685](https://gerrit.wikimedia.org/r/#/c/334685/), and [336896](https://gerrit.wikimedia.org/r/#/c/336896/) for full details of the implementation on both back-end and front-end.
 
@@ -294,7 +300,7 @@ We employed the *binom* [@R-binom], *LearnBayes* [@R-learnbayes], *conting* [@R-
 load(path("data/T156300.RData")) # loads 'searches' and 'indices'
 ```
 
-After the test has concluded on 22 February 2017, we processed the collected data and filtered out duplicated events, extraneous search engine result pages (SERPs), and kept only the searches for which we had both event logging (EL) data and logs of searches (Cirrus requests). This left us with 6620 search sessions (see `r table_caps("Session Counts", display = "cite")`) with the full breakdown by wiki and group. `r table_caps("Click Counts", display = "cite")` breaks down the counts of clicks on same-wiki results (e.g. a Catalan Wikipedia visitor clicking on a Catalan Wikipedia article) and clicks on sister-projects results (e.g. an Italian Wikipedia visitor clicking on an Italian Wikinews article).
+After the test has concluded on 22 February 2017, we processed the collected data and filtered out duplicated events, extraneous search engine result pages (SERPs), and kept only the searches for which we had both event logging (EL) data and logs of searches (Cirrus requests). This left us with a total of `r dplyr::n_distinct(searches$session_id, searches$group, searches$wiki)` search sessions with the full breakdown by wiki and group (see `r table_caps("Session Counts", display = "cite")`). `r table_caps("Click Counts", display = "cite")` breaks down the counts of clicks on same-wiki results (e.g. a Catalan Wikipedia visitor clicking on a Catalan Wikipedia article) and clicks on sister-projects results (e.g. an Italian Wikipedia visitor clicking on an Italian Wikinews article).
 
 ```{r summary_stats_data}
 session_counts <- searches %>%
@@ -616,9 +622,9 @@ list(
   fable(format_caption(table_caps, "BCDA H1"))
 ```
 
-In Figures `r figure_caps("Clickthrough Rates", display = "num")`, `r figure_caps("BCDA H1 (a)", display = "num")`, and `r figure_caps("BCDA H1 (b)", display = "num")`, we saw that the clickthrough rate was higher in <span class="test-group-2">Test (Random)</span> and <span class="test-group-3">Test (Recall)</span> than in <span class="test-group-1">Control</span> on almost all of the four wikis. The only exception being the clickthrough rate of users in the <span class="test-group-2">Test (Random)</span> and <span class="test-group-3">Test (Recall)</span> group on the Italian and Polish Wikipedias, respectively.
+In Figures `r figure_caps("Clickthrough Rates", display = "num")`, `r figure_caps("BCDA H1 (a)", display = "num")`, and `r figure_caps("BCDA H1 (b)", display = "num")`, we see that the clickthrough rate was higher in <span class="test-group-2">Test (Random)</span> and <span class="test-group-3">Test (Recall)</span> than in <span class="test-group-1">Control</span> on almost all of the four wikis. The only exception being the clickthrough rates of users in the Polish Wikipedia <span class="test-group-2">Test (Random)</span> (`r sprintf("%.1f%%", 100 * keep_where(searches_H1, wiki == "Polish Wikipedia", group == "Test (Random)")$mean)`) and Italian <span class="test-group-3">Test (Recall)</span> (`r sprintf("%.1f%%", 100 * keep_where(searches_H1, wiki == "Italian Wikipedia", group == "Test (Recall)")$mean)`) groups.
 
-`r table_caps("BCDA (H1)", display = "cite")` shows the [relative risk](https://en.wikipedia.org/wiki/Relative_risk) -- how more likely each respective test group is to engage with the search results (same-wiki or cross-wiki) than the <span class="test-group-1">Control</span> group. For example, on Catalan Wikipedia, users in the <span class="test-group-2">Test (Random)</span> are 1.103 times more likely to click on a result than users in the <span class="test-group-1">Control</span> group. While most of the estimates are greater than 1 (suggesting more relevant results), the 95% [credible intervals](https://en.wikipedia.org/wiki/Credible_interval) contain 1, meaning we do not have sufficient evidence to draw definitive conclusions.
+`r table_caps("BCDA (H1)", display = "cite")` shows the [relative risk](https://en.wikipedia.org/wiki/Relative_risk) -- how more likely each respective test group is to engage with the search results (same-wiki or cross-wiki) than the <span class="test-group-1">Control</span> group. For example, on Catalan Wikipedia, users in the <span class="test-group-2">Test (Random)</span> are `r sprintf("%.3f", keep_where(bcda_H1a, wiki == "Catalan Wikipedia", term == "relative_risk")$estimate)` times more likely to click on a result than users in the <span class="test-group-1">Control</span> group. While most of the estimates are greater than 1 (suggesting more relevant results), the 95% [credible intervals](https://en.wikipedia.org/wiki/Credible_interval) contain 1, meaning we do not have sufficient evidence to draw definitive conclusions.
 
 ```{r sister_clickthrough, cache=TRUE, dependson='data', results='asis'}
 indices_subset <- indices %>%
@@ -716,11 +722,13 @@ ggplot(crosswiki_results, aes(x = sisters, y = n)) +
        y = "Searches", title = "Number of test groups' searches by number of cross-wiki results returned")
 ```
 
-We also suspect that the high zero results rate for each of the sister projects for these four languages may have been responsible for the few sister-project clicks. In `r figure_caps("Cross-wiki Results", display = "cite")`, relatively few searches had more than 3 cross-wiki search results.
+We also suspect that the high zero results rate for each of the sister projects for these four languages may have been responsible for the few sister-project clicks. In `r figure_caps("Cross-wiki Results", display = "cite")`, relatively few searches had more than 3 cross-wiki search results. As shown in `r table_caps("Log-linear Model", display = "cite")` in the [Engagement] analysis, there is evidence that suggests a positive relationship between number of sister projects in the sidebar and clicks on those cross-wiki results.
 
-Furthermore, since the users did not see more than the top result from each sister project, it is possible they did not event want to bother with viewing more results since the one they were shown was not relevant. Ideally, the first result would always be the most relevant one, but that is not the case, and sometimes results further down the list are more relevant to the user's actual task.
+Furthermore, since the users did not see more than the top result from each sister project, it is possible they did not event want to bother with viewing more results if the one they were shown was not relevant. Ideally, the first result would always be the most relevant one, but that is not always the case, and sometimes results further down the list are likely to be more relevant to the user's actual task. It would be difficult to show (for example) the top three results from each sister project without making the user interface (UI) more cluttered. Perhaps we could show the other results, but collapse them, and allow the user to expand each sister project's results without having to go to another page.
 
-Additionally, Multimedia results were shown in a reverse order (see [T158937](https://phabricator.wikimedia.org/T158937)), but we suspect this is a minor bug that did not have an effect on the test.
+Additionally, Multimedia results were shown in a reverse order[^multimedia], but we suspect this is a minor bug that did not have an effect on the test.
+
+[^multimedia]: This issue is tracked in [T158937](https://phabricator.wikimedia.org/T158937) and was resolved in [Gerrit change 342200](https://gerrit.wikimedia.org/r/#/c/342200/).
 
 ```{r single_clicks}
 single_clicks <- searches %>%

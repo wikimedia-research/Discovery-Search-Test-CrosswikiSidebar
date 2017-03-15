@@ -53,3 +53,4 @@ docs/index.tex
 # docs/index_files/*
 
 docs/index_cache/*
+docs/index_files/figure-latex/*

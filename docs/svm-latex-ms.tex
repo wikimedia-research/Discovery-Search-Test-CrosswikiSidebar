@@ -196,11 +196,13 @@ $endif$
 
 $endif$
 
-\vskip 3.25pt
+\vskip 2.25pt
+\noindent $if(anonymous)$\doublespacing$else$$if(spacing)$\$spacing$spacing$endif$$endif$
 
-\noindent $if(anonymous)$\doublespacing$else$$if(spacing)$\$spacing$spacing$endif$$endif$ $body$
+$body$
 
-% \newpage
+\newpage
+
 \singlespacing
 $if(natbib)$
 $if(bibliography)$
