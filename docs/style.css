@@ -45,3 +45,7 @@ dl dd {
 .tocify-extend-page {
   display: none;
 }
+
+caption {
+  caption-side: bottom;
+}

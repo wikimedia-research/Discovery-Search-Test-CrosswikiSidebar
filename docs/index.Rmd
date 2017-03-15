@@ -15,6 +15,13 @@ author:
   name: "Deb Tankersley"
 abstract: "Wikimedia Engineering's Discovery's Search team ran an A/B test from 9 Feb 2017 to 22 Feb 2017 to assess the effectiveness of performing cross-wiki searches and showing Catalan, Italian, Persian, and Polish Wikipedias' users results from sister projects such as Wikisource and Wikiquote. We found that while the overall engagement with the search results was higher for the two test groups compared to the control group, there was no sufficient evidence to definitively say that the additional search results increased user engagement. We suspect that a critical UX design issue -- links shown in black, rather than standard blue -- and the particular languages this test was deployed on (resulting in a higher zero results rate than seen across other languages) had a negative effect on the results, and recommend performing a follow-up test."
 output:
+  pdf_document:
+    citation_package: natbib
+    fig_height: 6
+    fig_width: 10
+    keep_tex: yes
+    latex_engine: xelatex
+    template: svm-latex-ms.tex
   html_document:
     includes:
       after_body: suffix.html
@@ -33,20 +40,15 @@ output:
     toc_depth: 4
     toc_float:
       collapsed: no
-  pdf_document:
-    citation_package: natbib
-    fig_height: 6
-    fig_width: 10
-    keep_tex: yes
-    latex_engine: xelatex
-    template: svm-latex-ms.tex
 bibliography: bibliography.bib
 link-citations: yes
 nocite: |
   @R-rmarkdown, @R-magrittr, @R-tidyr, @R-dplyr, @R-ggplot2, @R-wmf
-csl: journal-of-statistical-computation-and-simulation.csl
 fontsize: 11pt
 geometry: margin=1in
+header-includes:
+  - \usepackage{floatrow}
+  - \floatsetup[table]{capposition=bottom}
 ---
 ```{js, echo = FALSE}
 $(function() {
@@ -63,7 +65,7 @@ $(function() {
 });
 ```
 ```{r setup, include=FALSE}
-set.seed(0)
+set.seed(0); options(digits = 3, scipen = 500)
 library(magrittr)
 library(knitr)
 library(kableExtra)
@@ -80,10 +82,8 @@ if (is_html()) {
   options(knitr.table.format = "latex")
 }
 opts_chunk$set(
-  echo = is_html(),
-  warning = FALSE,
-  message = FALSE,
-  dev = 'png',
+  echo = is_html(), warning = FALSE, message = FALSE,
+  out.width='\\textwidth', dev = 'png', fig.ext = 'png',
   dpi = ifelse(is_html(), 150, 300)
 )
 path <- function(x) {
@@ -101,6 +101,31 @@ fable <- function(x, caption = NULL, ...) {
     })
   } else {
     return(kable(x, caption = caption))
+  }
+}
+interpret_bf <- function(bf, interpreter = c('Kass and Raftery', 'Harold Jeffreys')) {
+  if (interpreter[1] == 'Kass and Raftery') {
+    bf_transformed <- 2 * log(bf)
+    if ( bf_transformed <= 2 ) {
+      return("not worth more than a bare mention")
+    } else if ( bf_transformed > 2 && bf_transformed <= 6 ) {
+      return("positive evidence against null hypothesis of independence")
+    } else if ( bf_transformed > 6 && bf_transformed <= 10 ) {
+      return("strong evidence against null hypothesis of independence")
+    } else { # bf_transformed > 10
+      return("very strong evidence against null hypothesis of independence")
+    }
+  } else { # interpreter == 'Harold Jeffreys'
+    bf_transformed <- log10(bf)
+    if ( bf_transformed <= 1/2 ) {
+      return("not worth more than a bare mention")
+    } else if ( bf_transformed > 1/2 && bf_transformed <= 1 ) {
+      return("substantial evidence againstnull hypothesis of independence")
+    } else if ( bf_transformed > 1 && bf_transformed <= 2 ) {
+      return("strong evidence against null hypothesis of independence")
+    } else { # bf_transformed > 2
+      return("decisive evidence against null hypothesis of independence")
+    }
   }
 }
 ```
@@ -123,19 +148,20 @@ print_caption <- function(formatted_caption) {
   cat(paste0('<p class = "caption">', formatted_caption, '</p>', collapse = ''))
 }
 # Add captions:
-figure_caps(name = "Example", caption = "Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering.")
+figure_caps(name = "Example", caption = "Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering. Screenshot by Deb Tankersley (CC BY-SA 4.0 via Wikimedia Commons)")
 figure_caps(name = "Flow of users", caption = "Flow of Wikipedia visitors into the A/B test.", display = FALSE)
 table_caps(name = "Session Counts", caption = "Number of search sessions used for analysis by wiki and group. Each search session may have several individual searches.")
 table_caps(name = "Click Counts", caption = "Number of click events by group.")
-table_caps(name = "Sample Interactions", caption = "A sample of some visitors' interaction with the cross-wiki search results after they were enrolled into the test groups.")
 figure_caps(name = "ZRR", caption = "Proportion of searches yielding zero results broken up by group, wiki, and type of results (same-wiki only vs. including cross-wiki results).")
 figure_caps(name = "ZRR by language", caption = "The proportion of searches that yielded zero results was the lowest for Wikipedia and Wikisource, with the other projects having very high zero result rates.")
 figure_caps(name = "Counts", caption = "Average number of searches, average number of search engine result pages (SERPs), total searches, total SERPs, and total sessions by group and wiki. The groups did not appear to behave too differently. For example, the three groups had very similar average searches per user.")
 figure_caps(name = "Clickthrough Rates", caption = "Clickthrough rates of experimental groups, split by wiki. In the <span class=\"test-group-1\">Control</span> group, only searches that yielded some same-wiki results were considered. In the two test groups, only searches that yielded some sister-wiki results were considered.")
-figure_caps(name = "BCDA H1 (a)", caption = "Comparison of the <span class=\"test-group-1\">Control</span> group with the <span class=\"test-group-2\">Test (Random)</span> group.")
-figure_caps(name = "BCDA H1 (b)", caption = "Comparison of the <span class=\"test-group-1\">Control</span> group with the <span class=\"test-group-2\">Test (Recall)</span> group.")
-table_caps(name = "BCDA H1", caption = "How much more likely the <span class=\"test-group-2\">Test (Random)</span> and <span class=\"test-group-3\">Test (Recall)</span> groups were to engage with the search results compared to the <span class=\"test-group-1\">Control</span> group.")
+figure_caps(name = "BCDA H1 (a)", caption = ifelse(is_html(), "Comparison of the <span class=\"test-group-1\">Control</span> group with the <span class=\"test-group-2\">Test (Random)</span> group.", "Comparison of the Controlgroup with the Test (Random) group."))
+figure_caps(name = "BCDA H1 (b)", caption = ifelse(is_html(), "Comparison of the <span class=\"test-group-1\">Control</span> group with the <span class=\"test-group-2\">Test (Recall)</span> group.", "Comparison of the Control group with the Test (Recall) group."))
+table_caps(name = "BCDA H1", caption = ifelse(is_html(), "How much more likely the <span class=\"test-group-2\">Test (Random)</span> and <span class=\"test-group-3\">Test (Recall)</span> groups were to engage with the search results compared to the <span class=\"test-group-1\">Control</span> group.", "How much more likely the Test (Random) and (Recall) groups were to engage with the search results compared to the Control group."))
 figure_caps(name = "Cross-wiki Results", caption = "How many of the two test groups' searches returned cross-wiki results from 0 (none) - 7 (all) sister projects.")
+table_caps(name = "Sister Clicks", caption = "A contingency table of searches by number of sister projects returned (rows) and number of clicks on those cross-wiki results (columns). For example, there were 8 searches where the users saw 2 sister projects in the sidebar and clicked only once on one of those cross-wiki results.")
+table_caps(name = "Log-linear Model", caption = "Results of fitting a Bayesian log-linear model to cross-wiki results and cross-wiki clickthroughs.")
 ```
 ```{r links, echo=FALSE, results='asis'}
 if (is_html()) {
@@ -147,20 +173,20 @@ if (is_html()) {
 
 # Introduction
 
-Within the [Wikimedia Foundation](https://wikimediafoundation.org/wiki/Home)'s [Engineering group](https://www.mediawiki.org/wiki/Wikimedia_Engineering), the [Discovery department](https://www.mediawiki.org/wiki/Wikimedia_Discovery)'s mission is to make the wealth of knowledge and content in the [Wikimedia projects](https://wikimediafoundation.org/wiki/Our_projects) (such as [Wikipedia](https://www.wikipedia.org/)) easily discover-able. The Search team is responsible for maintaining and enhancing the search features and APIs for MediaWiki, such as language detection (i.e. if a French Wikipedia visitor searches in German, then in addition to results from French Wikipedia, they would also get results from German Wikipedia).
+Within the [Wikimedia Foundation](https://wikimediafoundation.org/wiki/Home)'s [Engineering group](https://www.mediawiki.org/wiki/Wikimedia_Engineering), the [Discovery department](https://www.mediawiki.org/wiki/Wikimedia_Discovery)'s mission is to make the wealth of knowledge and content in the [Wikimedia projects](https://wikimediafoundation.org/wiki/Our_projects) (such as [Wikipedia](https://www.wikipedia.org/)) easily discover-able. The Search team is responsible for maintaining and enhancing the search features and APIs for MediaWiki, such as language detection (i.e. if a French Wikipedia visitor searches and gets fewer than 3 results, we check if maybe their query is in another language, and if it is in German, then in addition to 0-2 results from French Wikipedia, they would also get results from German Wikipedia).
 
-Specifically, the [Search team](https://www.mediawiki.org/wiki/Wikimedia_Discovery/Search)'s current goal is to add cross-wiki searching -- that is, providing search results from other (also referred to as "sister") Wikimedia projects ("*wikis*") within the same language. For example, if a work (e.g. a book or poem) on French Wikisource contained that German phrase, that user would be shown results from French Wikisource in addition to any results from French and German Wikipedias.
+Specifically, the [Search team](https://www.mediawiki.org/wiki/Wikimedia_Discovery/Search)'s current goal is to add cross-wiki searching -- that is, providing search results from other (also referred to as "sister") Wikimedia projects ("*wikis*") within the same language. For example, if a work (e.g. a book or poem) on French Wikisource matched the user's query, that user would be shown results from French Wikisource in addition to any results from French Wikipedia.
 
 ```{r example_caption, include=FALSE}
 example_cap <- format_caption(figure_caps, "Example")
 example_png <- png::readPNG("../example.png", info = TRUE)
 example_dim <- attr(example_png, "info")$dim
 ```
-```{r example_figure, fig.width=ifelse(is_html(), 0.25, 1)*example_dim[1]/72, fig.height=ifelse(is_html(), 0.25, 1)*example_dim[2]/72, fig.cap=example_cap, fig.align='center', fig.ext='png', echo=FALSE}
+```{r example_figure, fig.width=ifelse(is_html(), 0.25, 1)*example_dim[1]/72, fig.height=ifelse(is_html(), 0.25, 1)*example_dim[2]/72, out.height='8in', fig.cap=example_cap, fig.align='center', echo=FALSE, out.width=NULL}
 grid::grid.raster(example_png, interpolate = TRUE)
 ```
 
-For the users who received the experimental user experience (UX), each additional wiki's top result was shown as a box in a sidebar with a link to view more results (see `r figure_caps("example", display = "cite")`). There were two groups of users who received the experimental UX and one control group that did not:
+For the users who received the experimental user experience (UX), each additional wiki's top result was shown as a box in a sidebar with a link to view more results (see `r figure_caps("Example", display = "cite")`). There were two groups of users who received the experimental UX and one control group that did not:
 
 ```{r "test group description", results='asis', echo=FALSE}
 descriptions <- list(
@@ -205,18 +231,18 @@ library(ggplot2)
 
 ## Data
 
-The data was collected according to the [TSS2 schema, revision 16270835](https://meta.wikimedia.org/w/index.php?title=Schema:TestSearchSatisfaction2&direction=next&oldid=15922352). `r figure_caps("user_flow", display = "cite")` shows the flow of Wikipeda visitors on Desktop. Approximately 5.7% of the unique desktop devices that visit the 270 Wikipedias are accounted by Catalan, Italian, Persian, and Polish Wikipedias. In general, desktop users are randomly selected for anonymous tracking at a rate of 1 in 200, but for these wikis we changed the sampling rate to 1 in 200 for Catalan and Persian, and 1 in 50 for Italian and Polish. After a user was randomly selected into event logging, they had a 50% chance to be selected for the A/B test. Users who made it into the test were then randomly assigned to one of the three groups described above: <span class="test-group-1">Control</span>, <span class="test-group-2">Test (Random)</span>, and <span class="test-group-3">Test (Recall)</span>.
+The data was collected according to the [TSS2 schema, revision 16270835](https://meta.wikimedia.org/w/index.php?title=Schema:TestSearchSatisfaction2&direction=next&oldid=15922352). `r figure_caps("Flow of users", display = "cite")` shows the flow of Wikipeda visitors on Desktop. Approximately 5.7% of the unique desktop devices that visit the 270 Wikipedias are accounted by Catalan, Italian, Persian, and Polish Wikipedias. In general, desktop users are randomly selected for anonymous tracking at a rate of 1 in 200, but for these wikis we changed the sampling rate to 1 in 10 for Catalan and Persian, and 1 in 50 for Italian and Polish ([Gerrit change 337608](https://gerrit.wikimedia.org/r/#/c/337608/)). After a user was randomly selected into event logging, they had a 50% chance to be selected for the A/B test. Users who made it into the test were then randomly assigned to one of the three groups described above: <span class="test-group-1">Control</span>, <span class="test-group-2">Test (Random)</span>, and <span class="test-group-3">Test (Recall)</span>.
 
 ```{r user_flow_caption, echo=FALSE}
 user_flow_cap <- format_caption(figure_caps, "Flow of users")
 ```
-```{r user_flow, fig.cap=user_flow_cap, fig.ext='png'}
+```{r user_flow, fig.cap=user_flow_cap}
 experiment_nodes <- c(
   "Wikipedia visitors on Desktop",
   "Italian (2.85%)", "Persian (0.61%)", "Catalan (0.23%)", "Polish (2.06%)", "Other Languages (94.3%)",
   "Eligible for test", "Not in Event Logging", "In Event Logging",
   "50% enrolled into A/B Test", "Not in test, but in EL",
-  "1/3 assigned to Test (Recall)", "1/3 assigned to Test (Random)", "1/3 assigned to Control"
+  "Test (Recall)", "Test (Random)", "Control"
 )
 experiment_edges <- list(
   "Wikipedia visitors on Desktop" = list(
@@ -232,9 +258,9 @@ experiment_edges <- list(
   "Persian (0.61%)" = list("Eligible for test" = 1/10, "Not in Event Logging" = 9/10),
   "Catalan (0.23%)" = list("Eligible for test" = 1/10, "Not in Event Logging" = 9/10),
   "Eligible for test" = list("50% enrolled into A/B Test" = 1/2, "Not in test, but in EL" = 1/2),
-  "50% enrolled into A/B Test" = list("1/3 assigned to Control" = 1/3, "1/3 assigned to Test (Recall)" = 1/3, "1/3 assigned to Test (Random)" = 1/3)
+  "50% enrolled into A/B Test" = list("Control" = 1/3, "Test (Recall)" = 1/3, "Test (Random)" = 1/3)
 )
-ds <- riverplot::default.style(); ds$col <- "gray"; ds$srt <- 45
+ds <- riverplot::default.style(); ds$col <- "gray"; ds$srt <- 30
 visitor_flow <- riverplot::makeRiver(
   experiment_nodes, experiment_edges,
   node_xpos = c(1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 5, 5, 5),
@@ -246,12 +272,12 @@ visitor_flow <- riverplot::makeRiver(
     "Italian (2.85%)" = list(col = "orange"),
     "Eligible for test" = list(col = "orange"),
     "50% enrolled into A/B Test" = list(col = "orange"),
-    "1/3 assigned to Control" = list(col = RColorBrewer::brewer.pal(3, "Set1")[1]),
-    "1/3 assigned to Test (Random)" = list(col = RColorBrewer::brewer.pal(3, "Set1")[2]),
-    "1/3 assigned to Test (Recall)" = list(col = RColorBrewer::brewer.pal(3, "Set1")[3])
+    "Control" = list(col = RColorBrewer::brewer.pal(3, "Set1")[1]),
+    "Test (Random)" = list(col = RColorBrewer::brewer.pal(3, "Set1")[2]),
+    "Test (Recall)" = list(col = RColorBrewer::brewer.pal(3, "Set1")[3])
   )
 )
-x <- plot(visitor_flow, node_margin = 1.5, default_style = ds, fix.pdf = TRUE)
+x <- plot(visitor_flow, node_margin = 3, default_style = ds, fix.pdf = TRUE)
 ```
 
 We would like to note that our event logging does not support cross-wiki tracking, so after the user leaves the search results page, we cannot learn if they have performed subsequent searches, how and how long the user engaged with the visited result's page.
@@ -260,11 +286,11 @@ See Phabricator ticket [T149806](https://phabricator.wikimedia.org/T149806) and 
 
 ## Analysis
 
-We employed the *binom* [@R-binom] and internally-developed *BCDA* [@R-BCDA] packages for Bayesian statistical analysis and confidence intervals in Figures `r figure_caps("zero_results_rate", display = "num")`, `r figure_caps("clickthrough_rates", display = "num")`, `r figure_caps("bcda_H1a", display = "num")`, and `r figure_caps("bcda_H1b", display = "num")`.
+We employed the *binom* [@R-binom], *LearnBayes* [@R-learnbayes], *conting* [@R-conting], and internally-developed *BCDA* [@R-BCDA] packages for Bayesian statistical analysis and confidence intervals in Figures `r figure_caps("zero_results_rate", display = "num")`, `r figure_caps("clickthrough_rates", display = "num")`, `r figure_caps("bcda_H1a", display = "num")`, and `r figure_caps("bcda_H1b", display = "num")`.
 
 # Results
 
-```{r data}
+```{r data, cache=TRUE}
 load(path("data/T156300.RData")) # loads 'searches' and 'indices'
 ```
 
@@ -299,35 +325,6 @@ click_counts %>%
   set_rownames(c("Control", "Test (Random)", "Test (Recall)", "All 3 groups")) %>%
   set_colnames(c("Same-wiki clicks", "Sister-project clicks", "Overall clicks")) %>%
   fable(format_caption(table_caps, "Click Counts"))
-```
-
-In `r table_caps("sample_interactions", display = "cite")`, we observed the following three interactions:
-
-- User **A** was a Persian Wikipedia visitor who got enrolled into the test and received their cross-wiki results ordered according to recall. The Wikiquote box was displayed first (below the Multimedia box). The user clicked on the specific result, then clicked to see more results from Wikiquote.
-
-- User **B** was an Italian Wikipedia visitor who got enrolled into the test and received their cross-wiki results ordered according to recall. This user had a similar interaction, although Wikisource was the first box displayed (below the Multimedia box), and the switch to viewing more results (after the initial probe into the specific result) was quicker.
-
-- User **C** was an Italian Wikipedia visitor who got enrolled into the test and received their cross-wiki results randomly ordered. The Wikiquote box was randomly displayed first (below the Multimedia box) and the user clicked to see more results. Perhaps unsatisfied with Wiktionary's search results, the user clicked Back, but Wikisource was displayed first (below the Multimedia box) on this second load of the original search results.
-
-```{r sample_interactions_table, echo=FALSE, results='asis'}
-searches %>%
-  keep_where(session_id %in% c("ca7fc0600bde50a2", "0642e9f1a0e29e0e", "7de1d49a56ca86f2"),
-             event == "sister-project click") %>%
-  group_by(session_id) %>%
-  mutate(Click = cumsum(rep(1, n()))) %>%
-  ungroup %>%
-  mutate(
-    User = LETTERS[as.numeric(factor(session_id))],
-    Group = ifelse(group == "Test (Random)", "Random", "Recall"),
-    Click = vapply(Click, toOrdinal::toOrdinal, ""),
-    Position = vapply(`clicked-result position`, toOrdinal::toOrdinal, ""),
-    Wikipedia = sub(" Wikipedia", "", wiki, fixed = TRUE),
-    `Sister Project` = stringi::stri_trans_totitle(`sister project`)
-  ) %>%
-  select(User, Wikipedia, Group, Timestamp = timestamp,
-         Click, Position, `Sister Project`, Destination = destination) %>%
-  arrange(User, Timestamp) %>%
-  fable(format_caption(table_caps, "Sample Interactions"))
 ```
 
 ## Zero Results Rate (ZRR)
@@ -402,15 +399,15 @@ searches %>%
          language = sub(" Wikipedia", "", wiki, fixed = TRUE),
          dne = factor(zrr == 1, c(FALSE, TRUE), c("Exists", "Does not exist for this language"))) %>%
   ggplot(aes(y = zrr, x = 1, color = language, linetype = dne)) +
-  geom_hline(aes(yintercept = zrr), data = zrr_proj, linetype = "dashed") +
+  geom_hline(aes(yintercept = zrr), data = zrr_proj, linetype = "dotted") +
   geom_pointrange(aes(ymax = zrr, ymin = 0.1), position = position_dodge(width = 0.5)) +
   geom_text(aes(label = sprintf("%.0f%%", 100 * zrr), y = 0, vjust = "bottom"), position = position_dodge(width = 0.5)) +
   scale_y_continuous(labels = scales::percent_format(), breaks = seq(0, 1, 0.1), limits = c(0, 1)) +
   facet_wrap(~ project, ncol = 4) +
   labs(x = NULL, y = NULL, color = "Language", linetype = NULL,
-       title = "Zero results rate (ZRR) of searches in A/B test, broken down by project and language",
-       subtitle = "Dashed line indicates each project's overall ZRR, across all the languages it is available in, calculated using EL data from TSS2 schema collected 10 Feb - 24 Feb",
-       caption = "At the time of the report, Wikiversity does not exist in Catalan, Persian,and Polish;\nWikivoyage does not exist in Catalan. Hence the 100% zero results rate.") +
+       title = "Zero results rate (ZRR) of Wikipedia and cross-wiki searches in A/B test, broken down by project and language",
+       subtitle = "Dotted horizontal line indicates each project's overall ZRR, across all the languages it is available in, calculated using EL data from the same schema",
+       caption = "At the time of the report, Wikiversity does not exist in Catalan, Persian,and Polish; Wikivoyage does not exist in Catalan. Hence the 100% zero results rate.") +
   theme_minimal(base_family = "GillSans") +
   theme(legend.position = "bottom",
         panel.grid.major.x = element_blank(),
@@ -436,11 +433,8 @@ counts <- searches %>%
   group_by(wiki, group, session_id) %>%
   summarize(searches = length(unique(serp_id)),
             SERPs = sum(event == "SERP")) %>%
-  summarize(`total sessions` = n(),
-            `total searches` = sum(searches),
-            `average searches\nper user` = mean(searches),
-            `total SERPs\nseen by users` = sum(SERPs),
-            `average SERPs\nseen per user` = mean(SERPs)) %>%
+  summarize(`searches\nper session` = mean(searches),
+            `SERPs seen\n per session` = mean(SERPs)) %>%
   ungroup %>%
   tidyr::gather(metric, value, -c(wiki, group))
 ```
@@ -480,7 +474,7 @@ ggplot(counts, aes(x = 1, y = value, color = group, ymin = 0, ymax = value)) +
         panel.border = element_rect(color = "gray30", fill = NA),
         strip.text.y = element_text(size = 12, angle = 0)) +
   labs(x = NULL, y = NULL,
-       title = "How counts of searches and search engine result pages (SERPs) vary by group and wiki",
+       title = "Average searches and search engine result pages (SERPs) by group and wiki",
        subtitle = "A single search can result in multiple SERPs if the user navigates to other pages of results or clicks a result and then goes back")
 ```
 
@@ -555,8 +549,11 @@ bcda_H1a %>%
     labels = c("Pr[Control Engaging]", "Pr[Test (Random) Engaging]", "Pr[Test] - Pr[Control]", "Relative Risk", "Odds Ratio")
   )) %>%
   ggplot(aes(x = 1, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_segment(y = 1, yend = 1, x = 0.99, xend = 1.05, linetype = "dashed", color = "gray40") +
+  geom_segment(y = 0, yend = 0, x = 0.99, xend = 1.05, linetype = "dashed", color = "gray40") +
   geom_pointrange() +
-  geom_text(aes(label = round(estimate, 4), hjust = "left"), nudge_x = 0.01) +
+  geom_text(aes(label = round(estimate, 4), y = estimate + (conf.high - estimate)/2,
+                hjust = "left"), nudge_x = 0.005) +
   facet_grid(term ~ wiki, scales = "free_y") +
   theme_minimal(base_family = "GillSans") +
   scale_x_continuous(limits = c(0.99, 1.05)) +
@@ -582,8 +579,11 @@ bcda_H1b %>%
     labels = c("Pr[Control Engaging]", "Pr[Test (Recall) Engaging]", "Pr[Test] - Pr[Control]", "Relative Risk", "Odds Ratio")
   )) %>%
   ggplot(aes(x = 1, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_segment(y = 1, yend = 1, x = 0.99, xend = 1.05, linetype = "dashed", color = "gray40") +
+  geom_segment(y = 0, yend = 0, x = 0.99, xend = 1.05, linetype = "dashed", color = "gray40") +
   geom_pointrange() +
-  geom_text(aes(label = round(estimate, 4), hjust = "left"), nudge_x = 0.01) +
+  geom_text(aes(label = round(estimate, 4), y = conf.high,
+                hjust = "left", vjust = "top"), nudge_x = 0.005) +
   facet_grid(term ~ wiki, scales = "free_y") +
   theme_minimal(base_family = "GillSans") +
   scale_x_continuous(limits = c(0.99, 1.05)) +
@@ -613,22 +613,81 @@ list(
          `Relative Risk` = rr,
          `95% CI` = ci) %>%
   arrange(Wiki, Comparison) %>%
-  fable(format_caption(table_caps, "BCDA (H1)"))
+  fable(format_caption(table_caps, "BCDA H1"))
 ```
 
 In Figures `r figure_caps("Clickthrough Rates", display = "num")`, `r figure_caps("BCDA H1 (a)", display = "num")`, and `r figure_caps("BCDA H1 (b)", display = "num")`, we saw that the clickthrough rate was higher in <span class="test-group-2">Test (Random)</span> and <span class="test-group-3">Test (Recall)</span> than in <span class="test-group-1">Control</span> on almost all of the four wikis. The only exception being the clickthrough rate of users in the <span class="test-group-2">Test (Random)</span> and <span class="test-group-3">Test (Recall)</span> group on the Italian and Polish Wikipedias, respectively.
 
 `r table_caps("BCDA (H1)", display = "cite")` shows the [relative risk](https://en.wikipedia.org/wiki/Relative_risk) -- how more likely each respective test group is to engage with the search results (same-wiki or cross-wiki) than the <span class="test-group-1">Control</span> group. For example, on Catalan Wikipedia, users in the <span class="test-group-2">Test (Random)</span> are 1.103 times more likely to click on a result than users in the <span class="test-group-1">Control</span> group. While most of the estimates are greater than 1 (suggesting more relevant results), the 95% [credible intervals](https://en.wikipedia.org/wiki/Credible_interval) contain 1, meaning we do not have sufficient evidence to draw definitive conclusions.
 
+```{r sister_clickthrough, cache=TRUE, dependson='data', results='asis'}
+indices_subset <- indices %>%
+  keep_where(!(project %in% c("commons", "wikipedia"))) %>%
+  group_by(cirrus_id) %>%
+  summarize(sisters = length(unique(project[n_results > 0])))
+sister_ctr <- searches %>%
+  keep_where(group != "Control") %>%
+  dplyr::inner_join(indices_subset, by = "cirrus_id") %>%
+  group_by(group, wiki, cirrus_id) %>%
+  summarize(
+    `clicks (sister project)` = sum(event == "sister-project click"),
+    sisters = sisters[1]
+  ) %>%
+  ungroup %>%
+  mutate(
+    `clicks (sister project)` = dplyr::case_when(
+      .$`clicks (sister project)` == 0 ~ "0",
+      .$`clicks (sister project)` == 1 ~ "1",
+      .$`clicks (sister project)` > 1 ~ "2+"
+    ),
+    sisters = dplyr::case_when(
+      .$sisters == 0 ~ "0",
+      .$sisters == 1 ~ "1",
+      .$sisters == 2 ~ "2",
+      .$sisters > 2 ~ "3+"
+    )
+  ) %>%
+  keep_where(!(`clicks (sister project)` %in% c("1", "2", "3+") & sisters == "0")) %>%
+  group_by(`clicks (sister project)`, sisters) %>%
+  dplyr::count() %>%
+  ungroup %>%
+  xtabs(n ~ sisters + `clicks (sister project)`, data = .)
+fable(sister_ctr, format_caption(table_caps, "Sister Clicks"))
+```
+```{r bayesian_analysis_of_complete_contingency_tables, cache=TRUE, dependson='sister_clickthrough'}
+BF <- LearnBayes::ctable(sister_ctr, matrix(rep(1, nrow(sister_ctr)*ncol(sister_ctr)), nrow(sister_ctr)))
+BCCT.fit <- sister_ctr %>%
+  as.data.frame() %>%
+  set_colnames(c("sisters", "clicks", "searches")) %>%
+  conting::bcct(searches ~ sisters + clicks + sisters:clicks, data = .,
+                n.sample = 2e4, prior = "UIP")
+BCCT.summary <- summary(BCCT.fit, n.burnin = 1e3, thin = 5)
+BCCT.estimates <- as.data.frame(BCCT.summary$int_stats[c("term", "post_mean", "lower", "upper")])
+BCCT.estimates %>%
+  mutate(
+    term = sub("(Intercept)", "0 sister projects and 0 cross-wiki clicks", term, fixed = TRUE),
+    term = sub(":", " and ", term, fixed = TRUE),
+    term = sub("sisters1", "1 sister project", term, fixed = TRUE),
+    term = sub("sisters2", "2 sister projects", term, fixed = TRUE),
+    term = sub("sisters3", "3+ sister projects", term, fixed = TRUE),
+    term = sub("clicks1", "1 cross-wiki click", term, fixed = TRUE),
+    term = sub("clicks2", "2+ cross-wiki clicks", term, fixed = TRUE),
+    ci = sprintf("(%.2f, %.2f)", lower, upper)
+  ) %>%
+  rename(Coefficient = term, Estimate = post_mean, `95% HPDI` = ci) %>%
+  select(-c(lower, upper)) %>%
+  fable(format_caption(table_caps, "Log-linear Model"))
+```
+
+Under the $\chi^2$ discrepancy statistic, the Bayesian *p* value of `r BCCT.summary$pval_stats$pval` does *not* indicate that the interaction model is inadequate. Futhermore, Kass and Raftery [-@Kass:1995vb] suggest that $2~\log_e(\mathrm{Bayes Factor}) = `r 2*log(BF)`$ is `r interpret_bf(BF)`. This means there is evidence of a relationship between number of projects displayed and number of clicks on those sister-wiki results.
+
+`r table_caps("Log-linear Model", display = "cite")` summarizes the MCMC results of fitting a Bayesian log-linear model to the data in `r table_caps("Sister Clicks", display = "cite")`. It suggests there is a strong interaction between number of projects returned and number of clicks on those projects. Contrasing the negative estimate for "3+ sister projects and 1 cross-wiki click" (`r BCCT.estimates$post_mean[9]`) to the positive estimates for "2/3+ sister projects and 2+ cross-wiki clicks" (`r BCCT.estimates$post_mean[11]` and `r BCCT.estimates$post_mean[12]`, respectively), the model suggests the relationship is positive -- that more sister projects shown to the user yields more cross-wiki clicks, up to a point.
+
 # Discussion
 
 As can be seen in `r figure_caps("Example", display = "cite")`, the cross-wiki results were displayed in black rather than the standard blue. This issue is tracked in [T158935](https://phabricator.wikimedia.org/T158935). We cannot estimate the effect this may have had on the results of the test, but we suspect this may have had a considerable negative effect because the results did not look like click-able links.
 
 ```{r crosswiki_results_data}
-indices_subset <- indices %>%
-  keep_where(!(project %in% c("commons", "wikipedia"))) %>%
-  group_by(cirrus_id) %>%
-  summarize(sisters = length(unique(project[n_results > 0])))
 searches_subset <- searches %>%
   keep_where(group %in% c("Test (Recall)", "Test (Random)")) %>%
   keep_where(event == "SERP") %>%
@@ -662,6 +721,26 @@ We also suspect that the high zero results rate for each of the sister projects 
 Furthermore, since the users did not see more than the top result from each sister project, it is possible they did not event want to bother with viewing more results since the one they were shown was not relevant. Ideally, the first result would always be the most relevant one, but that is not the case, and sometimes results further down the list are more relevant to the user's actual task.
 
 Additionally, Multimedia results were shown in a reverse order (see [T158937](https://phabricator.wikimedia.org/T158937)), but we suspect this is a minor bug that did not have an effect on the test.
+
+```{r single_clicks}
+single_clicks <- searches %>%
+  keep_where(group != "Control", `cirrus log: some sister-wiki results`, `cirrus log: some same-wiki results`) %>%
+  group_by(serp_id) %>%
+  summarize(
+    clicks = sum(event != "SERP"),
+    `clicks (sister project)` = sum(event == "sister-project click")
+  ) %>%
+  keep_where(clicks == 1) %>%
+  group_by(`clicks (sister project)`) %>%
+  dplyr::count() %>%
+  xtabs(n ~ `clicks (sister project)`, data = .)
+```
+
+Of the `r length(unique(searches$serp_id[searches$event == "sister-project click"]))` unique searches that included a click on the cross-wiki results, `r single_clicks[2]` were searches where the user received both sets of results (same-wiki and cross-wiki) but clicked only once and specifically on a cross-wiki result. This suggests, perhaps, that for some users the results from sister projects may have been more relevant than the results from the wiki they were on.
+
+## Acknowledgements
+
+We would like to thank our colleagues Trey Jones (Software Engineer, Wikimedia Foundation), Chelsy Xie (Data Analyst, Wikimedia Foundation), and Kevin Smith (Agile Coach, Wikimedia Foundation) for their reviews of and feedback on this report.
 
 ```{r bibliograpby, results='asis', echo=FALSE}
 if (is_html()) {

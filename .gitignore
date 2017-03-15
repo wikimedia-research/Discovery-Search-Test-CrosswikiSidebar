@@ -36,6 +36,11 @@ vignettes/*.pdf
 *.nb.html
 docs/index.md
 docs/index.tex
+*.aux
+*.fls
+*.out
+*.fdb_latexmk
+*.log
 
 # Data
 *.RData
@@ -46,3 +51,5 @@ docs/index.tex
 
 # Libs, etc. that will be uploaded on first draft but can be ignored for now
 # docs/index_files/*
+
+docs/index_cache/*

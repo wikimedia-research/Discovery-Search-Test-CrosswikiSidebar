@@ -4,7 +4,7 @@
 
 This repo is the analysis and report codebase for [Discovery](https://www.mediawiki.org/wiki/Special:MyLanguage/Wikimedia_Discovery)'s [test of cross-wiki search](https://www.mediawiki.org/wiki/Cross-wiki_Search_Result_Improvements/Testing):
 
-![Example of cross-wiki search results on Polish Wikipedia.](example.png)
+[![This is a screen capture sample depicting what a recent A/B test looked like - for displaying sister project search results. By DTankersley (WMF) (Own work) CC BY-SA 4.0 via Wikimedia Commons](example.png)](https://commons.wikimedia.org/wiki/File:Sister_project_search_results_test.jpg)
 
 See [T149806](https://phabricator.wikimedia.org/T149806), [Discovery 2016-17 Q3 goals](https://www.mediawiki.org/wiki/Wikimedia_Engineering/2016-17_Q3_Goals#Discovery), and [Cross-wiki Search Result Improvements](https://www.mediawiki.org/wiki/Cross-wiki_Search_Result_Improvements) for more information.
 
