@@ -13,7 +13,7 @@ author:
   name: "Mikhail Popov"
 - affiliation: "Product Manager (Analysis, Search Frontend), Wikimedia Foundation"
   name: "Deb Tankersley"
-abstract: "Wikimedia Engineering's Discovery's Search team ran an A/B test from 9 Feb 2017 to 22 Feb 2017 to assess the effectiveness of performing cross-wiki searches and showing Catalan, Italian, Persian, and Polish Wikipedias' users results from sister projects such as Wikisource and Wikiquote. We found that while the overall engagement with the search results was higher for the two test groups compared to the control group, there was not sufficient evidence to definitively say that the additional search results increased user engagement. We suspect that a critical UX design issue -- links shown in black, rather than standard blue -- and the particular languages this test was deployed on (resulting in a higher zero results rate than seen across other languages) had a negative effect on the results, and recommend performing a follow-up test on additional languages."
+abstract: "Wikimedia Engineering's Discovery's Search team ran an A/B test from 9 Feb 2017 to 22 Feb 2017 to assess the effectiveness of performing cross-wiki searches and showing Catalan, Italian, Persian, and Polish Wikipedias' users results from sister projects such as Wikisource and Wikiquote. We found that while the overall engagement with the search results was higher for the two test groups compared to the control group, there was not sufficient evidence to definitively say that the additional search results increased user engagement. We suspect that a critical UX design issue -- links shown in black, rather than standard blue -- and the particular languages this test was deployed on (resulting in a higher zero results rate than seen across other languages) had a negative effect on the results. Our path forward is to fix the existing issues and perform a follow-up test that includes additional languages."
 output:
   pdf_document:
     citation_package: natbib
@@ -148,7 +148,7 @@ print_caption <- function(formatted_caption) {
   cat(paste0('<p class = "caption">', formatted_caption, '</p>', collapse = ''))
 }
 # Add captions:
-figure_caps(name = "Example", caption = "Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering. Screenshot by Deb Tankersley (CC BY-SA 4.0 via Wikimedia Commons)")
+figure_caps(name = "Example", caption = "Example of cross-wiki search results on Polish Wikipedia, with sister wikis randomly ordered in the sidebar. Multimedia results (including results from Wikimedia Commons) are shown first, regardless of the sidebar ordering.")
 figure_caps(name = "Flow of users", caption = "Flow of Wikipedia visitors into the A/B test.", display = FALSE)
 table_caps(name = "Session Counts", caption = "Number of search sessions used for analysis by wiki and group. Each search session may have several individual searches.")
 table_caps(name = "Click Counts", caption = "Number of click events by group.")
@@ -186,7 +186,9 @@ example_dim <- attr(example_png, "info")$dim
 grid::grid.raster(example_png, interpolate = TRUE)
 ```
 
-For the users who received the experimental user experience (UX), each additional wiki's top result was shown as a box in a sidebar with a link to view more results (see `r figure_caps("Example", display = "cite")`). There were two groups of users who received the experimental UX and one control group that did not:
+For the users who received the experimental user experience (UX), each additional wiki's top result was shown as a box in a sidebar with a link to view more results (see `r figure_caps("Example", display = "cite")`[^screenshot]). There were two groups of users who received the experimental UX and one control group that did not:
+
+[^screenshot]: [Screenshot by Deb Tankersley](https://commons.wikimedia.org/wiki/File:Sister_project_search_results_test.jpg) available on [Wikimedia Commons](https://commons.wikimedia.org/wiki/Main_Page), licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.en).
 
 ```{r "test group description", results='asis', echo=FALSE}
 descriptions <- list(
@@ -691,7 +693,7 @@ Under the $\chi^2$ discrepancy statistic, the Bayesian *p* value of `r BCCT.summ
 
 # Discussion
 
-As can be seen in `r figure_caps("Example", display = "cite")`, the cross-wiki results were displayed in black rather than the standard blue. This issue is tracked in [T158935](https://phabricator.wikimedia.org/T158935). We cannot estimate the effect this may have had on the results of the test, but we suspect this may have had a considerable negative effect because the results did not look like click-able links.
+As can be seen in `r figure_caps("Example", display = "cite")`, the cross-wiki results were displayed in black rather than the standard blue. This issue is tracked in [T158935](https://phabricator.wikimedia.org/T158935) and has been [resolved](https://gerrit.wikimedia.org/r/#/c/342200/) for the upcoming follow-up test ([T160004](https://phabricator.wikimedia.org/T160004)). We cannot estimate the effect this may have had on the results of the test, but we suspect this may have had a considerable negative effect because the results did not look like click-able links.
 
 ```{r crosswiki_results_data}
 searches_subset <- searches %>%
@@ -728,7 +730,7 @@ Furthermore, since the users did not see more than the top result from each sist
 
 Additionally, Multimedia results were shown in a reverse order[^multimedia], but we suspect this is a minor bug that did not have an effect on the test.
 
-[^multimedia]: This issue is tracked in [T158937](https://phabricator.wikimedia.org/T158937) and was resolved in [Gerrit change 342200](https://gerrit.wikimedia.org/r/#/c/342200/).
+[^multimedia]: The multimedia reverse order bug is tracked in [T158937](https://phabricator.wikimedia.org/T158937) and was resolved in [Gerrit change 342200](https://gerrit.wikimedia.org/r/#/c/342200/).
 
 ```{r single_clicks}
 single_clicks <- searches %>%
