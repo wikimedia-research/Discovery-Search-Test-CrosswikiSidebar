@@ -15,13 +15,6 @@ author:
   name: "Deb Tankersley"
 abstract: "Wikimedia Engineering's Discovery's Search team ran an A/B test from 9 Feb 2017 to 22 Feb 2017 to assess the effectiveness of performing cross-wiki searches and showing Catalan, Italian, Persian, and Polish Wikipedias' users results from sister projects such as Wikisource and Wikiquote. We found that while the overall engagement with the search results was higher for the two test groups compared to the control group, there was not sufficient evidence to definitively say that the additional search results increased user engagement. We suspect that a critical UX design issue -- links shown in black, rather than standard blue -- and the particular languages this test was deployed on (resulting in a higher zero results rate than seen across other languages) had a negative effect on the results. Our path forward is to fix the existing issues and perform a follow-up test that includes additional languages."
 output:
-  pdf_document:
-    citation_package: natbib
-    fig_height: 6
-    fig_width: 10
-    keep_tex: yes
-    latex_engine: xelatex
-    template: svm-latex-ms.tex
   html_document:
     includes:
       after_body: suffix.html
@@ -40,6 +33,13 @@ output:
     toc_depth: 4
     toc_float:
       collapsed: no
+  pdf_document:
+    citation_package: natbib
+    fig_height: 6
+    fig_width: 10
+    keep_tex: yes
+    latex_engine: xelatex
+    template: svm-latex-ms.tex
 bibliography: bibliography.bib
 link-citations: yes
 nocite: |
@@ -69,6 +69,11 @@ set.seed(0); options(digits = 3, scipen = 500)
 library(magrittr)
 library(knitr)
 library(kableExtra)
+if (!"printr" %in% installed.packages()[, "Package"]) {
+  install.packages("printr", type = "source", repos = c("Yihui Xie" = "http://yihui.name/xran", CRAN = "http://cran.rstudio.com"))
+} else {
+  loadNamespace("printr")
+}
 is_html <- function() {
   if (length(opts_knit$get("rmarkdown.pandoc.to")) > 0) {
     return(opts_knit$get("rmarkdown.pandoc.to") == "html")
@@ -100,7 +105,7 @@ fable <- function(x, caption = NULL, ...) {
       kable_styling(bootstrap_options = c("striped", "hover"), ...)
     })
   } else {
-    return(kable(x, caption = caption))
+    return(kable(x, caption = caption, ...))
   }
 }
 interpret_bf <- function(bf, interpreter = c('Kass and Raftery', 'Harold Jeffreys')) {
@@ -426,11 +431,7 @@ searches %>%
         panel.border = element_rect(color = "gray30", fill = NA))
 ```
 
-In `r figure_caps("ZRR by language", display = "cite")`, we broke the ZRR from `r figure_caps("ZRR", display = "cite")` down by language and project and included a reference marker for each project's overall ZRR (aggregated across all the languages the project is available in). Almost all of the projects are available (at the time of the test and at the time of writing this report) in Catalan, Italian, Persian, and Polish. 
-
-Namely, the overall ZRR of projects like Wikinews and Wiktionary (both exist in Catalan, Italian, Persian, and Polish) appears to be much lower than the ZRR observed in this test.
-
-In fact, the ZRR in these four languages is much higher than the overall ZRR for every project. We suspect this is responsible for the low sister-project click counts seen in `r table_caps("Click Counts", display = "cite")`.
+In `r figure_caps("ZRR by language", display = "cite")`, we broke the ZRR from `r figure_caps("ZRR", display = "cite")` down by language and project and included a reference marker for each project's overall ZRR (aggregated across all the languages the project is available in). Almost all of the projects are available (at the time of the test and at the time of writing this report) in Catalan, Italian, Persian, and Polish. Of particular note are the overall ZRR of projects like Wikinews and Wiktionary (both exist in Catalan, Italian, Persian, and Polish), which appear to be much lower than the ZRR observed in this test. In fact, the ZRR in these four languages is much higher than the overall ZRR for every project. We suspect this is partly responsible for the low sister-project click counts seen in `r table_caps("Click Counts", display = "cite")`.
 
 ## Engagement
 
@@ -626,9 +627,11 @@ list(
 
 In Figures `r figure_caps("Clickthrough Rates", display = "num")`, `r figure_caps("BCDA H1 (a)", display = "num")`, and `r figure_caps("BCDA H1 (b)", display = "num")`, we see that the clickthrough rate was higher in <span class="test-group-2">Test (Random)</span> and <span class="test-group-3">Test (Recall)</span> than in <span class="test-group-1">Control</span> on almost all of the four wikis. The only exception being the clickthrough rates of users in the Polish Wikipedia <span class="test-group-2">Test (Random)</span> (`r sprintf("%.1f%%", 100 * keep_where(searches_H1, wiki == "Polish Wikipedia", group == "Test (Random)")$mean)`) and Italian <span class="test-group-3">Test (Recall)</span> (`r sprintf("%.1f%%", 100 * keep_where(searches_H1, wiki == "Italian Wikipedia", group == "Test (Recall)")$mean)`) groups.
 
-`r table_caps("BCDA (H1)", display = "cite")` shows the [relative risk](https://en.wikipedia.org/wiki/Relative_risk) -- how more likely each respective test group is to engage with the search results (same-wiki or cross-wiki) than the <span class="test-group-1">Control</span> group. For example, on Catalan Wikipedia, users in the <span class="test-group-2">Test (Random)</span> are `r sprintf("%.3f", keep_where(bcda_H1a, wiki == "Catalan Wikipedia", term == "relative_risk")$estimate)` times more likely to click on a result than users in the <span class="test-group-1">Control</span> group. While most of the estimates are greater than 1 (suggesting more relevant results), the 95% [credible intervals](https://en.wikipedia.org/wiki/Credible_interval) contain 1, meaning we do not have sufficient evidence to draw definitive conclusions.
+`r table_caps("BCDA (H1)", display = "cite")` shows the [relative risk](https://en.wikipedia.org/wiki/Relative_risk) -- how much more likely each respective test group is to engage with the search results (same-wiki or cross-wiki) than the <span class="test-group-1">Control</span> group. For example, on Catalan Wikipedia, users in the <span class="test-group-2">Test (Random)</span> are `r sprintf("%.3f", keep_where(bcda_H1a, wiki == "Catalan Wikipedia", term == "relative_risk")$estimate)` times more likely to click on a result than users in the <span class="test-group-1">Control</span> group. While most of the estimates are greater than 1 (suggesting more relevant results), the 95% [credible intervals](https://en.wikipedia.org/wiki/Credible_interval) contain 1, meaning we do not have sufficient evidence to draw definitive conclusions.
 
-```{r sister_clickthrough, cache=TRUE, dependson='data', results='asis'}
+
+
+```{r sister_clickthrough, cache=TRUE, dependson='data'}
 indices_subset <- indices %>%
   keep_where(!(project %in% c("commons", "wikipedia"))) %>%
   group_by(cirrus_id) %>%
@@ -660,7 +663,12 @@ sister_ctr <- searches %>%
   dplyr::count() %>%
   ungroup %>%
   xtabs(n ~ sisters + `clicks (sister project)`, data = .)
-fable(sister_ctr, format_caption(table_caps, "Sister Clicks"))
+```
+```{r sister_clickthrough_tbl, results='asis', echo=FALSE}
+sister_ctr %>%
+  set_colnames(paste(colnames(.), "cross-wiki clicks")) %>%
+  set_rownames(paste(rownames(.), "sister projects")) %>%
+  fable(format_caption(table_caps, "Sister Clicks"))
 ```
 ```{r bayesian_analysis_of_complete_contingency_tables, cache=TRUE, dependson='sister_clickthrough'}
 BF <- LearnBayes::ctable(sister_ctr, matrix(rep(1, nrow(sister_ctr)*ncol(sister_ctr)), nrow(sister_ctr)))
@@ -689,7 +697,7 @@ BCCT.estimates %>%
 
 Under the $\chi^2$ discrepancy statistic, the Bayesian *p* value of `r BCCT.summary$pval_stats$pval` does *not* indicate that the interaction model is inadequate. Futhermore, Kass and Raftery [-@Kass:1995vb] suggest that $2~\log_e(\mathrm{Bayes Factor}) = `r 2*log(BF)`$ is `r interpret_bf(BF)`. This means there is evidence of a relationship between number of projects displayed and number of clicks on those sister-wiki results.
 
-`r table_caps("Log-linear Model", display = "cite")` summarizes the MCMC results of fitting a Bayesian log-linear model to the data in `r table_caps("Sister Clicks", display = "cite")`. It suggests there is a strong interaction between number of projects returned and number of clicks on those projects. Contrasing the negative estimate for "3+ sister projects and 1 cross-wiki click" (`r BCCT.estimates$post_mean[9]`) to the positive estimates for "2/3+ sister projects and 2+ cross-wiki clicks" (`r BCCT.estimates$post_mean[11]` and `r BCCT.estimates$post_mean[12]`, respectively), the model suggests the relationship is positive -- that more sister projects shown to the user yields more cross-wiki clicks, up to a point.
+`r table_caps("Log-linear Model", display = "cite")` summarizes the MCMC results of fitting a Bayesian log-linear model to the data in `r table_caps("Sister Clicks", display = "cite")`. It suggests there is a strong interaction between number of projects returned and number of clicks on those projects. Contrasing the negative estimate for "3+ sister projects and 1 cross-wiki click" (`r BCCT.estimates$post_mean[9]`) to the positive estimates for "2/3+ sister projects and 2+ cross-wiki clicks" (`r BCCT.estimates$post_mean[11]` and `r BCCT.estimates$post_mean[12]`, respectively), _the model suggests the relationship is **positive** -- that more sister projects shown to the user yields more cross-wiki clicks, up to a point_.
 
 # Discussion
 
@@ -728,7 +736,7 @@ We also suspect that the high zero results rate for each of the sister projects 
 
 Furthermore, since the users did not see more than the top result from each sister project, it is possible they did not event want to bother with viewing more results if the one they were shown was not relevant. Ideally, the first result would always be the most relevant one, but that is not always the case, and sometimes results further down the list are likely to be more relevant to the user's actual task. It would be difficult to show (for example) the top three results from each sister project without making the user interface (UI) more cluttered. Perhaps we could show the other results, but collapse them, and allow the user to expand each sister project's results without having to go to another page.
 
-Additionally, Multimedia results were shown in a reverse order[^multimedia], but we suspect this is a minor bug that did not have an effect on the test.
+It is worth noting that Multimedia results were shown in a reverse order[^multimedia], but we suspect this is a minor bug that did not have an effect on the test. Additionally, there is a possibility the users saw what they wanted to see from the cross-wiki result preview in the sidebar and that they did not feel the need to click through.
 
 [^multimedia]: The multimedia reverse order bug is tracked in [T158937](https://phabricator.wikimedia.org/T158937) and was resolved in [Gerrit change 342200](https://gerrit.wikimedia.org/r/#/c/342200/).
 
